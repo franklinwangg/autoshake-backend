@@ -8,14 +8,10 @@ util.inspect.defaultOptions.depth = null;
 const filePath = "temp-pretty.txt"; // replace with your JSON or JSONL file
 
 // ---- HELPER FUNCTION ----
-function printDocumentTypes(requiredDocumentTypes) {
-  if (
-    !Array.isArray(requiredDocumentTypes) ||
-    requiredDocumentTypes.length === 0
-  ) {
-    console.log("Required Documents: None");
-    return;
-  }
+function printDocumentTypes(job) {
+  const jobId = job?.id || "Unknown";
+  const requiredDocumentTypes = job?.requiredDocumentTypes || "Unknown";
+  console.log("Job ID : ", jobId);
 
   console.log("Required Documents:");
 
@@ -28,23 +24,68 @@ function printDocumentTypes(requiredDocumentTypes) {
   });
 }
 
-// function printDocumentTypes(jobId, requiredDocumentTypes) {
-//   console.log(`\nJob ID: ${jobId}`);
-
-//   if (!Array.isArray(requiredDocumentTypes) || requiredDocumentTypes.length === 0) {
-//     console.log("  Required Documents: None");
+// function printDocumentTypes(requiredDocumentTypes) {
+//   if (
+//     !Array.isArray(requiredDocumentTypes) ||
+//     requiredDocumentTypes.length === 0
+//   ) {
+//     console.log("Required Documents: None");
 //     return;
 //   }
 
-//   console.log("  Required Documents:");
+//   console.log("Required Documents:");
 
-//   requiredDocumentTypes.forEach(doc => {
+//   requiredDocumentTypes.forEach((doc) => {
 //     const name = doc?.name || "Unknown";
 //     const behavior = doc?.behaviorIdentifier || "Unknown";
 //     const id = doc?.id || "Unknown";
 
-//     console.log(`    • ${name} (id: ${id}, behavior: ${behavior})`);
+//     console.log(`  • ${name} (id: ${id}, behavior: ${behavior})`);
 //   });
+// }
+
+// function printDocumentTypes(node) {
+//     //   // ata => job => requiredDocumentTypes.
+
+//   if (!jobNode?.job) return;
+
+//   const job = jobNode.job;
+//   const employer = job.employer;
+//   const locations = job.locations || [];
+//   const salaryRange = job.salaryRange;
+
+//   console.log("====== JOB INFO ======");
+//   console.log("Job ID:", job.id);
+//   console.log("Title:", job.title);
+//   console.log("Job Type:", job.jobType?.name);
+//   console.log("Employment Type:", job.employmentType?.name);
+//   console.log("Duration:", job.duration);
+//   console.log("Remote:", job.remote);
+//   console.log("On-site:", job.onSite);
+//   console.log("Hybrid:", job.hybrid);
+//   console.log("Work Location Type:", job.workLocationType);
+//   console.log("Apply Start:", job.applyStart);
+//   console.log("Employer:", employer?.name);
+//   console.log("Employer ID:", employer?.id);
+
+//   if (locations.length > 0) {
+//     console.log("Locations:");
+//     locations.forEach((loc, i) => {
+//       console.log(`  [${i + 1}] ${loc.city}, ${loc.state}, ${loc.country}`);
+//     });
+//   }
+
+//   if (salaryRange) {
+//     console.log(
+//       "Salary Range:",
+//       `${salaryRange.min / 100} - ${salaryRange.max / 100} ${
+//         salaryRange.currency
+//       } (${salaryRange.paySchedule?.friendlyName})`
+//     );
+//   }
+
+//   console.log("Additional Benefits:", job.additionalBenefitsLink || "N/A");
+//   console.log("=================================\n");
 // }
 
 function printJobInfo(jobNode) {
@@ -160,7 +201,7 @@ if (filePath.endsWith(".jsonl")) {
 
     // CASE 2: Job Detail response (requiredDocumentTypes lives here)
     if (data?.job?.requiredDocumentTypes) {
-      printDocumentTypes(data.job.requiredDocumentTypes);
+      printDocumentTypes(data.job);
     }
   });
 }
