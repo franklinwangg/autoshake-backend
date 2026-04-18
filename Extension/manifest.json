@@ -1,0 +1,10 @@
+{
+  "name": "AutoShake AI",
+  "description": "Tailored resume generation for Handshake",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "images/temp_logo.png"
+  }
+}
