@@ -1,0 +1,488 @@
+  {
+    "data": {
+      "job": {
+        "id": "10506494",
+        "title": "Software Development Engineer",
+        "createdAt": "2025-11-14T16:29:04-08:00",
+        "expirationDate": "2025-12-14T22:59:59-08:00",
+        "employer": {
+          "id": "243557",
+          "name": "SpaceNav",
+          "logo": {
+            "url": "https://joinhandshake-production.imgix.net/app/public/assets/institutions/243557/original/hs-emp-logo-data.?ixlib=rb-4.1.1&w=150&h=150&fit=crop&s=b67a885879e376ac599cd57f0576b136",
+            "__typename": "Image"
+          },
+          "industry": {
+            "id": "1021",
+            "name": "Aerospace",
+            "__typename": "Industry"
+          },
+          "__typename": "Employer"
+        },
+        "__typename": "Job",
+        "remunerations": [
+          {
+            "id": "9",
+            "behaviorIdentifier": "Paid time off",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "8",
+            "behaviorIdentifier": "Dental",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "7",
+            "behaviorIdentifier": "Vision",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "6",
+            "behaviorIdentifier": "Medical",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "12",
+            "behaviorIdentifier": "401(k) match",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "13",
+            "behaviorIdentifier": "FSA or HSA plans",
+            "__typename": "Remuneration"
+          },
+          {
+            "id": "17",
+            "behaviorIdentifier": "Tuition reimbursement",
+            "__typename": "Remuneration"
+          }
+        ],
+        "additionalBenefitsLink": "",
+        "salaryRange": {
+          "id": "5681530",
+          "min": 8000000,
+          "max": 9000000,
+          "currency": "USD",
+          "paySchedule": {
+            "id": "2",
+            "behaviorIdentifier": "ANNUAL_SALARY",
+            "name": "Annual Salary",
+            "friendlyName": "Per year",
+            "__typename": "PaySchedule"
+          },
+          "__typename": "Salary"
+        },
+        "salaryType": {
+          "id": "1",
+          "name": "Paid",
+          "behaviorIdentifier": "PAID",
+          "__typename": "SalaryTypeOption"
+        },
+        "payCurrencyCode": "USD",
+        "description": "<p>SpaceNav is encouraging applications for an experienced <strong>Application Developer </strong>who is a self-motivated demonstrated team-player. SpaceNav develops mission critical flight dynamics applications used to support satellite operations.</p><p><br>The <strong>Application Developer</strong> will design, develop and deploy various mathematically intensive software applications. A strong background in software engineering and mathematics is required. This position requires the successful candidate to be self-motivated and at times work with little supervision. The ability to interact with other professionals in various sectors is critical.</p><p><strong>Responsibilities:</strong></p><ul><li>Develop and test various flight dynamics applications</li><li>Turn mathematically intensive algorithms into software requirements and test specifications</li><li>Work with engineers from other disciplines to develop software requirements and support design artifacts</li><li>Help foster a positive and inclusive team culture</li></ul><p><br><strong>Qualifications:</strong></p><ul><li>Bachelor's degree in Computer Science, Computer or Electrical Engineering, or Mathematics</li><li>3+ years’ programming in C/C++</li><li>Good understanding of containers and infrastructure automation</li><li>Strong background in object orientated programming paradigm</li><li>Excellent verbal communication skills</li><li>Experience with Continuous Integration and Continuous Delivery (CI/CD)</li><li>Experience with cloud services, such as AWS</li></ul><p><strong>What We Can Offer:</strong></p><ul><li>Comprehensive health, dental, and vision insurance</li><li>Retirement savings plan with company match</li><li>Paid time off and holidays</li><li>The anticipated salary range for this role is $80,000.00-$90,000.00</li></ul><p><i>SpaceNav is an Equal Opportunity Employer and does not discriminate on the basis of race, color, religion, sex, sexual orientation, gender identity, national origin, age, disability, marital status, veteran status or any other characteristic protected by federal and state laws.</i></p><p><i>This organization participates in E-Verify.</i>&nbsp;<i>We will provide the Social Security Administration and, if necessary, the Department of Homeland Security, with information from each employee's I-9 form to confirm work authorization.</i></p><p><i>In compliance with the Colorado Job Application Fairness Act, in any materials you submit, you may redact or remove age-identifying information such as age, date of birth, or dates of school attendance or graduation. You will not be penalized for redacting or removing this information.</i></p><p>&nbsp;</p>",
+        "hybrid": false,
+        "remote": false,
+        "onSite": true,
+        "locations": [
+          {
+            "id": "165490823",
+            "name": "Boulder, Colorado, United States",
+            "latitude": 40.014986,
+            "longitude": -105.270545,
+            "city": "Boulder",
+            "state": "Colorado",
+            "country": "United States",
+            "__typename": "Location"
+          }
+        ],
+        "workLocationType": "SPECIFIC",
+        "startDate": null,
+        "endDate": null,
+        "jobType": {
+          "id": "9",
+          "name": "Job",
+          "behaviorIdentifier": "JOB",
+          "__typename": "JobTypeEnum"
+        },
+        "employmentType": {
+          "id": "1",
+          "name": "Full-Time",
+          "behaviorIdentifier": "FULL_TIME",
+          "__typename": "EmploymentTypeEnum"
+        },
+        "workStudy": false,
+        "duration": "PERMANENT",
+        "workSchedule": null,
+        "studentScreen": {
+          "id": "14206603",
+          "acceptsCptCandidates": false,
+          "acceptsOptCandidates": false,
+          "acceptsOptCptCandidates": false,
+          "workAuthRequired": true,
+          "workAuthNotDisclosed": false,
+          "willingToSponsorCandidate": false,
+          "__typename": "StudentScreen"
+        },
+        "attachments": [],
+        "follow": null,
+        "aiFitCheckEnabled": false
+      },
+      "currentUser": {
+        "id": "58855951",
+        "slug": "ncdjyd",
+        "locationInterests": [
+          {
+            "id": "197293000",
+            "interesting": {
+              "id": "120063513",
+              "name": "Seattle, Washington, United States",
+              "latitude": 47.603832,
+              "longitude": -122.330062,
+              "city": "Seattle",
+              "state": "Washington",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293001",
+            "interesting": {
+              "id": "120063514",
+              "name": "Boston, Massachusetts, United States",
+              "latitude": 42.360253,
+              "longitude": -71.058291,
+              "city": "Boston",
+              "state": "Massachusetts",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293002",
+            "interesting": {
+              "id": "120063515",
+              "name": "New York, New York, New York 10024, United States",
+              "latitude": 40.785306,
+              "longitude": -73.979956,
+              "city": "New York",
+              "state": "New York",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293003",
+            "interesting": {
+              "id": "120063516",
+              "name": "Philadelphia, Pennsylvania, United States",
+              "latitude": 39.952724,
+              "longitude": -75.163526,
+              "city": "Philadelphia",
+              "state": "Pennsylvania",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293004",
+            "interesting": {
+              "id": "120063517",
+              "name": "Los Angeles, California, United States",
+              "latitude": 34.053691,
+              "longitude": -118.242766,
+              "city": "Los Angeles",
+              "state": "California",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293005",
+            "interesting": {
+              "id": "120063518",
+              "name": "Austin, Texas, United States",
+              "latitude": 30.271129,
+              "longitude": -97.7437,
+              "city": "Austin",
+              "state": "Texas",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293006",
+            "interesting": {
+              "id": "120063519",
+              "name": "Baltimore, Maryland, United States",
+              "latitude": 39.290882,
+              "longitude": -76.610759,
+              "city": "Baltimore",
+              "state": "Maryland",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293007",
+            "interesting": {
+              "id": "120063520",
+              "name": "Denver, Colorado, United States",
+              "latitude": 39.739236,
+              "longitude": -104.984862,
+              "city": "Denver",
+              "state": "Colorado",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293008",
+            "interesting": {
+              "id": "120063521",
+              "name": "Washington, District of Columbia, United States",
+              "latitude": 38.895037,
+              "longitude": -77.036543,
+              "city": "Washington",
+              "state": "District of Columbia",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293009",
+            "interesting": {
+              "id": "120063522",
+              "name": "Atlanta, Georgia, United States",
+              "latitude": 33.748992,
+              "longitude": -84.390264,
+              "city": "Atlanta",
+              "state": "Georgia",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293010",
+            "interesting": {
+              "id": "120063523",
+              "name": "Dallas, Texas, United States",
+              "latitude": 32.776272,
+              "longitude": -96.796856,
+              "city": "Dallas",
+              "state": "Texas",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293011",
+            "interesting": {
+              "id": "120063524",
+              "name": "Chicago, Illinois, United States",
+              "latitude": 41.875562,
+              "longitude": -87.624421,
+              "city": "Chicago",
+              "state": "Illinois",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293540",
+            "interesting": {
+              "id": "120063776",
+              "name": "Seattle, Washington, United States",
+              "latitude": 47.603832,
+              "longitude": -122.330062,
+              "city": "Seattle",
+              "state": "Washington",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293541",
+            "interesting": {
+              "id": "120063777",
+              "name": "Boston, Massachusetts, United States",
+              "latitude": 42.360253,
+              "longitude": -71.058291,
+              "city": "Boston",
+              "state": "Massachusetts",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293542",
+            "interesting": {
+              "id": "120063778",
+              "name": "New York, New York, New York 10024, United States",
+              "latitude": 40.785306,
+              "longitude": -73.979956,
+              "city": "New York",
+              "state": "New York",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293543",
+            "interesting": {
+              "id": "120063779",
+              "name": "Philadelphia, Pennsylvania, United States",
+              "latitude": 39.952724,
+              "longitude": -75.163526,
+              "city": "Philadelphia",
+              "state": "Pennsylvania",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293544",
+            "interesting": {
+              "id": "120063780",
+              "name": "Los Angeles, California, United States",
+              "latitude": 34.053691,
+              "longitude": -118.242766,
+              "city": "Los Angeles",
+              "state": "California",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293545",
+            "interesting": {
+              "id": "120063781",
+              "name": "Austin, Texas, United States",
+              "latitude": 30.271129,
+              "longitude": -97.7437,
+              "city": "Austin",
+              "state": "Texas",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293546",
+            "interesting": {
+              "id": "120063782",
+              "name": "Baltimore, Maryland, United States",
+              "latitude": 39.290882,
+              "longitude": -76.610759,
+              "city": "Baltimore",
+              "state": "Maryland",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293547",
+            "interesting": {
+              "id": "120063783",
+              "name": "Denver, Colorado, United States",
+              "latitude": 39.739236,
+              "longitude": -104.984862,
+              "city": "Denver",
+              "state": "Colorado",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293548",
+            "interesting": {
+              "id": "120063784",
+              "name": "Washington, District of Columbia, United States",
+              "latitude": 38.895037,
+              "longitude": -77.036543,
+              "city": "Washington",
+              "state": "District of Columbia",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293549",
+            "interesting": {
+              "id": "120063785",
+              "name": "Atlanta, Georgia, United States",
+              "latitude": 33.748992,
+              "longitude": -84.390264,
+              "city": "Atlanta",
+              "state": "Georgia",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293550",
+            "interesting": {
+              "id": "120063786",
+              "name": "Dallas, Texas, United States",
+              "latitude": 32.776272,
+              "longitude": -96.796856,
+              "city": "Dallas",
+              "state": "Texas",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "197293551",
+            "interesting": {
+              "id": "120063787",
+              "name": "Chicago, Illinois, United States",
+              "latitude": 41.875562,
+              "longitude": -87.624421,
+              "city": "Chicago",
+              "state": "Illinois",
+              "country": "United States",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          },
+          {
+            "id": "224504482",
+            "interesting": {
+              "id": "146780931",
+              "name": "San Francisco, Cáceres, Cáceres, Spain",
+              "latitude": 39.465862,
+              "longitude": -6.366583,
+              "city": "Cáceres",
+              "state": "Cáceres",
+              "country": "Spain",
+              "__typename": "Location"
+            },
+            "__typename": "Interest"
+          }
+        ],
+        "__typename": "User"
+      }
+    }
+  },

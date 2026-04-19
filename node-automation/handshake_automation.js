@@ -99,6 +99,8 @@ const responses = await page.evaluate(() => {
   return window.__GRAPHQL_RESPONSES__;
 });
 
+console.log("Intercepted responses:", responses);
+
 // // Step 1: Write JSON literals to temp.txt
 // fs.writeFileSync("temp.txt", JSON.stringify(responses, null, 2));
 
