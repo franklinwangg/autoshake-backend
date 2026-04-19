@@ -1,2 +1,0 @@
-1) make a dictionary of jobs from the initial request, and for each jobextendeddetails response, add its required documents to the dictionary
-2) start implementing the waiting for user to click on everything logic
