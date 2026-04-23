@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  },
+  "scripts": {
+    "build": "esbuild content.ts popup.ts --bundle --outdir=dist --platform=browser",
+    "watch": "esbuild content.ts popup.ts --bundle --outdir=dist --platform=browser --watch"
+  }
+}
