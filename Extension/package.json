@@ -1,9 +1,11 @@
 {
   "devDependencies": {
-    "esbuild": "^0.28.0"
+    "@types/chrome": "^0.0.268",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "esbuild content.ts popup.ts --bundle --outdir=dist --platform=browser",
-    "watch": "esbuild content.ts popup.ts --bundle --outdir=dist --platform=browser --watch"
+    "build": "esbuild content.ts popup.ts background.ts --bundle --outdir=dist --platform=browser",
+    "watch": "esbuild content.ts popup.ts background.ts --bundle --outdir=dist --platform=browser --watch"
   }
 }

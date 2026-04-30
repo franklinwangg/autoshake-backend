@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "ESNext",
     "target": "ES6",
-    "types": [],
+    "types": ["chrome"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],

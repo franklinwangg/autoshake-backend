@@ -14,14 +14,36 @@
     if (link) {
       const href = link.getAttribute("href") || "";
       const text = link.textContent || "";
-      console.log("[AutoShake] Link clicked:", {
-        href,
-        text,
-        target: link.target,
-        classList: link.className
-      });
-      if (href.includes("job-search")) {
-        console.log("[AutoShake] \u2713 Job listing link detected!", href);
+      if (href.includes("/job-search/") && href.includes("page")) {
+        console.log("[AutoShake] Job listing link detected!", href);
+        const jobEntry = {
+          href,
+          text,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+          id: Date.now()
+          // unique id
+        };
+        if (chrome?.storage?.local) {
+          chrome.storage.local.get("jobList", (result) => {
+            const jobList = result.jobList || [];
+            if (!jobList.some((job) => job.href === href)) {
+              jobList.push(jobEntry);
+              chrome.storage.local.set({ jobList }, () => {
+                console.log("[AutoShake] Job added to list:", jobEntry);
+              });
+            }
+          });
+        } else if (chrome?.runtime?.sendMessage) {
+          chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response) => {
+            if (response?.success) {
+              console.log("[AutoShake] Job stored via background service worker", jobEntry);
+            } else {
+              console.warn("[AutoShake] Failed to store job via background worker", response);
+            }
+          });
+        } else {
+          console.warn("[AutoShake] chrome.storage.local unavailable and no runtime fallback available");
+        }
       }
     }
   });

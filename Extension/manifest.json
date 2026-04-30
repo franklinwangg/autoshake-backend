@@ -7,11 +7,14 @@
     "default_popup": "hello.html",
     "default_icon": "images/temp_logo.png"
   },
+  "background": {
+    "service_worker": "dist/background.js"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["dist/content.js"]
     }
   ],
-  "permissions": ["scripting"]
+  "permissions": ["scripting", "storage", "tabs"]
 }
