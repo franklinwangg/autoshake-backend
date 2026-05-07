@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resume Template</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      line-height: 1.5;
+      padding: 40px;
+    }
+
+    .resume {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      color: #111;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .contact {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .contact a {
+      color: #444;
+      text-decoration: none;
+      margin: 0 8px;
+    }
+
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #ddd;
+      color: #111;
+    }
+
+    .item {
+      margin-bottom: 18px;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .item-title {
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .item-subtitle {
+      color: #555;
+      font-size: 14px;
+    }
+
+    .date {
+      font-size: 14px;
+      color: #777;
+    }
+
+    ul {
+      margin-top: 8px;
+      margin-left: 20px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .skill {
+      background: #efefef;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .resume {
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="resume">
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Your Name</h1>
+      <p>Software Engineer | AI Researcher | Product Builder</p>
+
+      <div class="contact">
+        <a href="mailto:you@example.com">you@example.com</a> |
+        <a href="#">LinkedIn</a> |
+        <a href="#">GitHub</a> |
+        <a href="#">Portfolio</a>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="section">
+      <div class="section-title">Summary</div>
+
+      <p>
+        Highly motivated software engineer with experience in AI systems,
+        full-stack development, and scalable automation workflows.
+        Passionate about building impactful products and solving complex problems.
+      </p>
+    </div>
+
+    <!-- EXPERIENCE -->
+    <div class="section">
+      <div class="section-title">Experience</div>
+
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <div class="item-title">Software Engineer Intern</div>
+            <div class="item-subtitle">Company Name</div>
+          </div>
+
+          <div class="date">May 2025 – Aug 2025</div>
+        </div>
+
+        <ul>
+          <li>Built scalable APIs using Node.js and PostgreSQL.</li>
+          <li>Improved application performance by 35% through query optimization.</li>
+          <li>Collaborated with cross-functional teams to ship production features.</li>
+        </ul>
+      </div>
+
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <div class="item-title">AI Research Assistant</div>
+            <div class="item-subtitle">University Lab</div>
+          </div>
+
+          <div class="date">Jan 2024 – Present</div>
+        </div>
+
+        <ul>
+          <li>Developed ML pipelines for autonomous systems research.</li>
+          <li>Worked on simulation tooling and dataset preprocessing.</li>
+          <li>Published findings in collaborative academic projects.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- EDUCATION -->
+    <div class="section">
+      <div class="section-title">Education</div>
+
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <div class="item-title">University Name</div>
+            <div class="item-subtitle">B.S. in Computer Science</div>
+          </div>
+
+          <div class="date">2023 – 2026</div>
+        </div>
+
+        <p>Relevant Coursework: AI, Systems Design, Algorithms, Databases</p>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div class="section">
+      <div class="section-title">Projects</div>
+
+      <div class="item">
+        <div class="item-header">
+          <div>
+            <div class="item-title">AI Workflow Automation Platform</div>
+          </div>
+
+          <div class="date">2025</div>
+        </div>
+
+        <ul>
+          <li>Designed multi-agent workflows integrating Gmail, Drive, and Calendar.</li>
+          <li>Built intelligent task routing and automation pipelines.</li>
+          <li>Implemented scalable backend services and dashboard interfaces.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section">
+      <div class="section-title">Skills</div>
+
+      <div class="skills">
+        <div class="skill">Python</div>
+        <div class="skill">TypeScript</div>
+        <div class="skill">React</div>
+        <div class="skill">Node.js</div>
+        <div class="skill">PostgreSQL</div>
+        <div class="skill">AWS</div>
+        <div class="skill">Machine Learning</div>
+        <div class="skill">Docker</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
