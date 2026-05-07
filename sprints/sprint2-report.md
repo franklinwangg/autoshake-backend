@@ -9,7 +9,7 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 | Start Date | End Date |
 |---|---|
-| 05/19 | 06/03 |
+| 04/19 | 05/03 |
 
 ---
 
