@@ -1,19 +1,19 @@
-# 🚀 Sprint 2 Report — MVP End-to-End (Raw LLM Pipeline)
+# Sprint 2 Report — MVP End-to-End (Raw LLM Pipeline)
 
-## 🧠 Sprint Goal
+## Sprint Goal
 Deliver a complete working pipeline from Chrome extension → backend → AI → PDF output, enabling users to generate tailored resumes for selected jobs.
 
 ---
 
-# 📅 Sprint Timeline
+# Sprint Timeline
 
 | Start Date | End Date |
 |---|---|
-| 05/19 | 06/03 |
+| 04/19 | 05/03 |
 
 ---
 
-# 🎯 Sprint Deliverables
+# Sprint Deliverables
 
 - Chrome extension for job selection + resume upload
 - FastAPI backend for request handling
@@ -23,7 +23,7 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-# 📦 Sprint Scope
+# Sprint Scope
 
 | ID | Task | Status |
 |---|---|---|
@@ -38,15 +38,13 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-# ⚙️ Task Breakdown
+# Task Breakdown
 
-## 🧩 Extension — Tyler
+## Extension — Tyler
 
 ### Completed
 - Integrated job scraping flow from Handshake
 - Built multi-select job UI
-- Added resume upload input
-- Connected frontend submission flow to backend API
 
 ### Notes
 - Focused on minimizing friction in the user flow
@@ -54,26 +52,22 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-## 🖥️ Backend — Nirav
+## Backend — Nirav
 
 ### Completed
-- Implemented FastAPI intake endpoint
-- Added Pydantic validation layer
-- Built per-job processing loop
-- Standardized response formatting
+- Created a backend endpoint
+- research on api endpoints
 
 ### Notes
-- Backend now supports multiple job requests in a single submission
-- Validation catches malformed requests before AI processing
+- focusing on formatting backend responses
 
 ---
 
-## 🤖 AI Engine — Franklin
+##  AI Engine — Franklin
 
 ### Completed
 - Developed initial single-prompt LLM resume tailoring system
-- Added job description alignment logic
-- Reduced hallucination risk through prompt constraints
+- experimented with prompting and research
 
 ### Notes
 - Current system uses raw prompting without multi-agent orchestration
@@ -81,7 +75,7 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-## 📄 Output & Storage — Nataniel
+## Output & Storage — Nataniel
 
 ### Completed
 - Built text → PDF conversion pipeline
@@ -89,12 +83,13 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 - Implemented job-to-link mapping return format
 
 ### Notes
-- Storage currently supports local/S3-compatible architecture
+- Storage currently supports local architecture
 - PDFs are returned through generated links for frontend consumption
+- focusing on user auth and managing DB
 
 ---
 
-# 🔗 Dependencies
+# Dependencies
 
 | Dependency | Status |
 |---|---|
@@ -104,7 +99,7 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-# ⚠️ Risks / Concerns
+#  Risks / Concerns
 
 ## LLM Hallucinations
 - AI may generate unsupported resume claims
@@ -120,67 +115,50 @@ Deliver a complete working pipeline from Chrome extension → backend → AI →
 
 ---
 
-# 📊 Definition of Done
+#  Definition of Done
 
 | Requirement | Status |
 |---|---|
-| End-to-end flow works | ✅ |
-| PDFs generated for multiple jobs | ✅ |
-| Links returned to frontend | ✅ |
+| End-to-end flow works | X |
+| PDFs generated for multiple jobs in sample format| ✅ |
+| Job description displays to frontend | ✅ |
 | Basic testing completed | ✅ |
 
 ---
 
-# 🧪 Testing Notes
+#  Testing Notes
 
 ## Extension Testing
 - Manual end-to-end extension testing completed
-- Verified job selection + upload flow
 
 ## Backend Testing
-- API endpoints tested using Postman
 - Validated payload handling and response formatting
 
 ## Output Testing
 - Verified PDF generation pipeline
-- Confirmed downloadable link generation
 
 ---
 
-# 📌 Product Decision Discussions
+# Sprint Outcome
 
-| Issue | Topic | Status |
-|---|---|---|
-| #21 | Determining resume relevance to job details | 🟡 In Progress |
-| #22 | Defining strong vs weak experience alignment | 🟡 In Progress |
-
-### Current Direction
-- Resume relevance currently evaluated through semantic alignment with job descriptions
-- Strong/weak experience classification still under refinement and may evolve into a scoring system
-
----
-
-# 📈 Sprint Outcome
-
-Sprint 2 successfully established the first fully functional MVP pipeline for automated resume tailoring.
+Sprint 2 successfully established the individually components required for first fully functional MVP pipeline for automated resume tailoring.
 
 The system now supports:
 1. Selecting jobs from the Chrome extension
-2. Uploading a base resume
-3. Sending requests through FastAPI
-4. Generating tailored resumes using an LLM
-5. Producing downloadable PDF outputs
+2. Sending requests through FastAPI
+3. Generating tailored resumes using an LLM
+4. Producing downloadable PDF outputs
 
 This sprint validates the core technical feasibility of the platform and establishes the foundation for future improvements including ranking systems, better prompt orchestration, structured resume parsing, and higher-quality formatting.
 
 ---
 
-# 🚧 Next Focus Areas
+#  Next Focus Areas
 
-- Resume relevance scoring
 - Experience strength classification
 - Improved PDF formatting
-- Faster batch processing
+- User Auth
+- Job Data Formating and Post-processing
 - Structured resume parsing
 - Better hallucination prevention
 - Enhanced frontend UX
