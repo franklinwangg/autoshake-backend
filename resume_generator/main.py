@@ -2,23 +2,15 @@
 from pylatex import Command, Document, Section, Subsection
 from pylatex.utils import NoEscape, italic
 
-#import data
 
 #load resume templates
-
-
 def fill_document(doc):
-    """Add a section, a subsection and some text to the document.
+    with doc.create(Section("Education")):
+        doc.append("Bachelor of Science in Computer Science, University of Example, 2015-2019")
 
-    :param doc: the document
-    :type doc: :class:`pylatex.document.Document` instance
-    """
-    with doc.create(Section("A section")):
-        doc.append("Some regular text and some ")
-        doc.append(italic("italic text. "))
-
-        with doc.create(Subsection("A subsection")):
-            doc.append("Also some crazy characters: $&#{}")
+    with doc.create(Section("Experience")):
+        with doc.create(Subsection("Software Engineer at Tech Company")):
+            doc.append("Developed and maintained web applications using Python and JavaScript.")
 
 
 if __name__ == "__main__":
