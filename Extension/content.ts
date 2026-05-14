@@ -1,14 +1,25 @@
 ﻿const currentURL = window.location.href;
 const currentDomain = window.location.hostname;
 
-//console.log("[AutoShake] Current Website: " + currentURL);
-//console.log("[AutoShake] Domain: " + currentDomain);
-
 const targetWebsite = "handshake.com";
 
 if (currentDomain.includes(targetWebsite)){
 	console.log("[AutoShake] You are on " + targetWebsite + "!");
-	alert("AutoShake is running on this site!");
+
+	// Listen for GraphQL updates from injected script
+	window.addEventListener("message", (event) => {
+		if (event.data.type === "AUTOSHAKE_GRAPHQL_UPDATE") {
+			const responses = event.data.responses || [];
+			if (responses.length > 0) {
+				chrome.storage.local.set({
+					graphqlResponses: responses,
+					exportedAt: new Date().toISOString(),
+				}, () => {
+					console.log("[AutoShake] Saved", responses.length, "GraphQL responses to storage");
+				});
+			}
+		}
+	});
 }
 
 // Listen for clicks on all links
@@ -38,6 +49,15 @@ document.addEventListener("click", (event) => {
 				id: Date.now() // unique id
 			};
 			
+			// Also track in page context for fetch interception
+			window.postMessage(
+				{
+					type: "AUTOSHAKE_JOB_CLICKED",
+					jobEntry: jobEntry,
+				},
+				"*"
+			);
+			
 			if (chrome?.storage?.local) {
 				chrome.storage.local.get("jobList", (result) => {
 					const jobList = result.jobList || [];
@@ -66,3 +86,5 @@ document.addEventListener("click", (event) => {
 		}
 	}
 });
+
+console.log("[AutoShake] Content script loaded - monitoring Handshake jobs");

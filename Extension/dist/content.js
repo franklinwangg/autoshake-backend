@@ -6,7 +6,19 @@
   var targetWebsite = "handshake.com";
   if (currentDomain.includes(targetWebsite)) {
     console.log("[AutoShake] You are on " + targetWebsite + "!");
-    alert("AutoShake is running on this site!");
+    window.addEventListener("message", (event) => {
+      if (event.data.type === "AUTOSHAKE_GRAPHQL_UPDATE") {
+        const responses = event.data.responses || [];
+        if (responses.length > 0) {
+          chrome.storage.local.set({
+            graphqlResponses: responses,
+            exportedAt: (/* @__PURE__ */ new Date()).toISOString()
+          }, () => {
+            console.log("[AutoShake] Saved", responses.length, "GraphQL responses to storage");
+          });
+        }
+      }
+    });
   }
   document.addEventListener("click", (event) => {
     const target = event.target;
@@ -23,6 +35,13 @@
           id: Date.now()
           // unique id
         };
+        window.postMessage(
+          {
+            type: "AUTOSHAKE_JOB_CLICKED",
+            jobEntry
+          },
+          "*"
+        );
         if (chrome?.storage?.local) {
           chrome.storage.local.get("jobList", (result) => {
             const jobList = result.jobList || [];
@@ -47,4 +66,5 @@
       }
     }
   });
+  console.log("[AutoShake] Content script loaded - monitoring Handshake jobs");
 })();

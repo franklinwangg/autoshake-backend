@@ -1,9 +1,10 @@
 const toggle: HTMLInputElement | null = document.getElementById("stateToggle") as HTMLInputElement | null;
 const stateText: HTMLElement | null = document.getElementById("toggleLabel");
 const jobList: HTMLElement | null = document.getElementById("jobList");
+const graphqlStats: HTMLElement | null = document.getElementById("graphqlStats");
 
 // Helper function to calculate relative time (e.g., "5 minutes ago")
-function getRelativeTime(isoString: string): string {
+function GetRelativeTime(isoString: string): string {
 	const now: Date = new Date();
 	const past: Date = new Date(isoString);
 	const diffMs: number = now.getTime() - past.getTime();
@@ -24,18 +25,63 @@ function getRelativeTime(isoString: string): string {
 	return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
-function deleteJob(jobId: number) {
+function DisplayGraphQLResponses() {
+  const container = document.getElementById("graphqlResponses");
+  if (!container) return;
+
+  chrome.storage.local.get("graphqlResponses", (result) => {
+    const responses = result.graphqlResponses || [];
+    
+    if (responses.length === 0) {
+      container.innerHTML = "<p style='color:#999'>No responses yet</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+
+    responses.slice().reverse().forEach((r: any, i: number) => {
+      const parsed = JSON.parse(r.data);
+      const operationName = parsed?.data 
+        ? Object.keys(parsed.data)[0] 
+        : "unknown";
+
+      const item = document.createElement("div");
+      item.className = "graphql-item";
+      item.innerHTML = `
+        <div class="graphql-header" data-index="${i}">
+          <span class="graphql-op">${operationName}</span>
+          <span class="graphql-time">${GetRelativeTime(r.timestamp)}</span>
+          <span class="graphql-toggle">▶</span>
+        </div>
+        <pre class="graphql-body" id="body-${i}" style="display:none">${JSON.stringify(parsed, null, 2)}</pre>
+      `;
+
+      // Toggle expand/collapse
+      item.querySelector(".graphql-header")!.addEventListener("click", () => {
+        const body = document.getElementById(`body-${i}`)!;
+        const toggle = item.querySelector(".graphql-toggle")!;
+        const isHidden = body.style.display === "none";
+        body.style.display = isHidden ? "block" : "none";
+        toggle.textContent = isHidden ? "▼" : "▶";
+      });
+
+      container.appendChild(item);
+    });
+  });
+}
+
+function DeleteJob(jobId: number) {
 	chrome.storage.local.get("jobList", (result) => {
 		const jobList = result.jobList || [];
 		const updatedList = jobList.filter((job: any) => job.id !== jobId);
 		
 		chrome.storage.local.set({ jobList: updatedList }, () => {
-			displayJobs(); // Refresh the display
+			DisplayJobs(); // Refresh the display
 		});
 	});
 }
 
-function updateToggleLabel(isOn: boolean) {
+function UpdateToggleLabel(isOn: boolean) {
 	if (stateText) {
 		stateText.textContent = `State: ${isOn ? "On" : "Off"}`;
 	}
@@ -44,7 +90,7 @@ function updateToggleLabel(isOn: boolean) {
 	}
 }
 
-function displayJobs() {
+function DisplayJobs() {
 	if (!jobList) return;
 	
 	chrome.storage.local.get("jobList", (result) => {
@@ -63,7 +109,7 @@ function displayJobs() {
 			const jobItem: HTMLDivElement = document.createElement("div");
 			jobItem.className = "job-item";
 			
-			const relativeTime: string = getRelativeTime(job.timestamp);
+			const relativeTime: string = GetRelativeTime(job.timestamp);
 			jobItem.innerHTML = `
 				<div class="job-title">${job.text || "Job ID #" + (Math.floor(job.id/1000) - 1777000000)}</div>
 				<div class="job-meta">${relativeTime}</div>
@@ -86,7 +132,7 @@ function displayJobs() {
 			const deleteButton = jobItem.querySelector(".delete-button") as HTMLButtonElement;
 			deleteButton.addEventListener("click", (e) => {
 				e.stopPropagation(); // Prevent job item click
-				deleteJob(job.id);
+				DeleteJob(job.id);
 			});
 			
 			container.appendChild(jobItem);
@@ -99,14 +145,21 @@ function displayJobs() {
 // ----------------- Code that runs when popup opens -----------------
 
 if (toggle) {
-	updateToggleLabel(toggle.checked);
+	UpdateToggleLabel(toggle.checked);
 	toggle.addEventListener("change", () => {
-		updateToggleLabel(toggle.checked);
+		UpdateToggleLabel(toggle.checked);
 	});
 }
 else {
 	throw new Error("No toggle found in html!");
 }
 
-// Display jobs when popup opens
-displayJobs();
+// Display jobs and GraphQL stats when popup opens
+DisplayJobs();
+DisplayGraphQLResponses();
+
+document.getElementById("clearGraphQL")?.addEventListener("click", () => {
+  chrome.storage.local.remove(["graphqlResponses", "exportedAt"], () => {
+    DisplayGraphQLResponses();
+  });
+});

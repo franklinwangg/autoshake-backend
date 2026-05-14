@@ -99,10 +99,10 @@ const responses = await page.evaluate(() => {
   return window.__GRAPHQL_RESPONSES__;
 });
 
-// // Step 1: Write JSON literals to temp.txt
-// fs.writeFileSync("temp.txt", JSON.stringify(responses, null, 2));
+// Step 1: Write JSON literals to temp.txt
+fs.writeFileSync("temp.txt", JSON.stringify(responses, null, 2));
 
-// console.log("Saved scraped data to temp.txt");
+console.log("Saved scraped data to temp.txt");
 
 // // Step 2: Read temp.txt and parse it
 // let text = fs.readFileSync("temp.txt", "utf-8");

@@ -4,7 +4,8 @@
   var toggle = document.getElementById("stateToggle");
   var stateText = document.getElementById("toggleLabel");
   var jobList = document.getElementById("jobList");
-  function getRelativeTime(isoString) {
+  var graphqlStats = document.getElementById("graphqlStats");
+  function GetRelativeTime(isoString) {
     const now = /* @__PURE__ */ new Date();
     const past = new Date(isoString);
     const diffMs = now.getTime() - past.getTime();
@@ -22,23 +23,57 @@
     }
     return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
-  function deleteJob(jobId) {
+  function DisplayGraphQLResponses() {
+    const container = document.getElementById("graphqlResponses");
+    if (!container) return;
+    chrome.storage.local.get("graphqlResponses", (result) => {
+      const responses = result.graphqlResponses || [];
+      if (responses.length === 0) {
+        container.innerHTML = "<p style='color:#999'>No responses yet</p>";
+        return;
+      }
+      container.innerHTML = "";
+      responses.slice().reverse().forEach((r, i) => {
+        const parsed = JSON.parse(r.data);
+        const operationName = parsed?.data ? Object.keys(parsed.data)[0] : "unknown";
+        const item = document.createElement("div");
+        item.className = "graphql-item";
+        item.innerHTML = `
+        <div class="graphql-header" data-index="${i}">
+          <span class="graphql-op">${operationName}</span>
+          <span class="graphql-time">${GetRelativeTime(r.timestamp)}</span>
+          <span class="graphql-toggle">\u25B6</span>
+        </div>
+        <pre class="graphql-body" id="body-${i}" style="display:none">${JSON.stringify(parsed, null, 2)}</pre>
+      `;
+        item.querySelector(".graphql-header").addEventListener("click", () => {
+          const body = document.getElementById(`body-${i}`);
+          const toggle2 = item.querySelector(".graphql-toggle");
+          const isHidden = body.style.display === "none";
+          body.style.display = isHidden ? "block" : "none";
+          toggle2.textContent = isHidden ? "\u25BC" : "\u25B6";
+        });
+        container.appendChild(item);
+      });
+    });
+  }
+  function DeleteJob(jobId) {
     chrome.storage.local.get("jobList", (result) => {
       const jobList2 = result.jobList || [];
       const updatedList = jobList2.filter((job) => job.id !== jobId);
       chrome.storage.local.set({ jobList: updatedList }, () => {
-        displayJobs();
+        DisplayJobs();
       });
     });
   }
-  function updateToggleLabel(isOn) {
+  function UpdateToggleLabel(isOn) {
     if (stateText) {
       stateText.textContent = `State: ${isOn ? "On" : "Off"}`;
     } else {
       throw new Error("No state text found in html!");
     }
   }
-  function displayJobs() {
+  function DisplayJobs() {
     if (!jobList) return;
     chrome.storage.local.get("jobList", (result) => {
       const jobs = result.jobList || [];
@@ -52,7 +87,7 @@
       for (const job of jobs) {
         const jobItem = document.createElement("div");
         jobItem.className = "job-item";
-        const relativeTime = getRelativeTime(job.timestamp);
+        const relativeTime = GetRelativeTime(job.timestamp);
         jobItem.innerHTML = `
 				<div class="job-title">${job.text || "Job ID #" + (Math.floor(job.id / 1e3) - 1777e6)}</div>
 				<div class="job-meta">${relativeTime}</div>
@@ -69,7 +104,7 @@
         const deleteButton = jobItem.querySelector(".delete-button");
         deleteButton.addEventListener("click", (e) => {
           e.stopPropagation();
-          deleteJob(job.id);
+          DeleteJob(job.id);
         });
         container.appendChild(jobItem);
       }
@@ -78,12 +113,18 @@
     });
   }
   if (toggle) {
-    updateToggleLabel(toggle.checked);
+    UpdateToggleLabel(toggle.checked);
     toggle.addEventListener("change", () => {
-      updateToggleLabel(toggle.checked);
+      UpdateToggleLabel(toggle.checked);
     });
   } else {
     throw new Error("No toggle found in html!");
   }
-  displayJobs();
+  DisplayJobs();
+  DisplayGraphQLResponses();
+  document.getElementById("clearGraphQL")?.addEventListener("click", () => {
+    chrome.storage.local.remove(["graphqlResponses", "exportedAt"], () => {
+      DisplayGraphQLResponses();
+    });
+  });
 })();

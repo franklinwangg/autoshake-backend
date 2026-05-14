@@ -5,7 +5,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "esbuild content.ts popup.ts background.ts --bundle --outdir=dist --platform=browser",
-    "watch": "esbuild content.ts popup.ts background.ts --bundle --outdir=dist --platform=browser --watch"
+    "build": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser",
+    "watch": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser --watch"
   }
 }
