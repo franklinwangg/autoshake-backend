@@ -1,0 +1,13 @@
+{
+  "name": "ml-pipeline",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node controller/resume_controller.js",
+    "test": "node controller/resume_controller.js test-data/sample_input.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0"
+  }
+}
