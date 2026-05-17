@@ -4,6 +4,7 @@
   var toggle = document.getElementById("stateToggle");
   var stateText = document.getElementById("toggleLabel");
   var jobList = document.getElementById("jobList");
+  var graphqlToggleButton = document.getElementById("toggleGraphQL");
   var graphqlStats = document.getElementById("graphqlStats");
   function GetRelativeTime(isoString) {
     const now = /* @__PURE__ */ new Date();
@@ -23,11 +24,44 @@
     }
     return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
+  function getFieldFromObject(obj, path) {
+    let current = obj;
+    for (const segment of path) {
+      if (!current || typeof current !== "object") return null;
+      current = current[segment];
+    }
+    return current;
+  }
+  function ExtractJobField(responses, path) {
+    if (!Array.isArray(responses)) return null;
+    for (const response of responses) {
+      if (!response || typeof response.data !== "string") continue;
+      try {
+        const parsed = JSON.parse(response.data);
+        const candidate = getFieldFromObject(parsed?.data, path);
+        if (typeof candidate === "string" && candidate.trim().length > 0) {
+          return candidate;
+        }
+        if (parsed?.data && typeof parsed.data === "object") {
+          for (const value of Object.values(parsed.data)) {
+            const nested = getFieldFromObject(value, path);
+            if (typeof nested === "string" && nested.trim().length > 0) {
+              return nested;
+            }
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  }
   function DisplayGraphQLResponses() {
     const container = document.getElementById("graphqlResponses");
     if (!container) return;
-    chrome.storage.local.get("graphqlResponses", (result) => {
-      const responses = result.graphqlResponses || [];
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      const responses = Object.values(jobData).flatMap((job) => Array.isArray(job.graphqlResponses) ? job.graphqlResponses : []);
       if (responses.length === 0) {
         container.innerHTML = "<p style='color:#999'>No responses yet</p>";
         return;
@@ -58,10 +92,10 @@
     });
   }
   function DeleteJob(jobId) {
-    chrome.storage.local.get("jobList", (result) => {
-      const jobList2 = result.jobList || [];
-      const updatedList = jobList2.filter((job) => job.id !== jobId);
-      chrome.storage.local.set({ jobList: updatedList }, () => {
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      delete jobData[jobId];
+      chrome.storage.local.set({ jobData }, () => {
         DisplayJobs();
       });
     });
@@ -75,8 +109,9 @@
   }
   function DisplayJobs() {
     if (!jobList) return;
-    chrome.storage.local.get("jobList", (result) => {
-      const jobs = result.jobList || [];
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length === 0) {
         jobList.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
         return;
@@ -87,11 +122,14 @@
       for (const job of jobs) {
         const jobItem = document.createElement("div");
         jobItem.className = "job-item";
-        const relativeTime = GetRelativeTime(job.timestamp);
+        const jobTitle = ExtractJobField(job.graphqlResponses || [], ["job", "title"]) || "Unknown Job";
+        const jobEmployer = ExtractJobField(job.graphqlResponses || [], ["job", "employer", "name"]);
+        const relativeTime = job.clickTimestamp ? GetRelativeTime(job.clickTimestamp) : "unknown time";
         jobItem.innerHTML = `
-				<div class="job-title">${job.text || "Job ID #" + (Math.floor(job.id / 1e3) - 1777e6)}</div>
+				<div class="job-title">${jobTitle}</div>
+				${jobEmployer ? `<div class="job-employer">${jobEmployer}</div>` : ""}
 				<div class="job-meta">${relativeTime}</div>
-				<button class="delete-button" data-job-id="${job.id}">\xD7</button>
+				<button class="delete-button" data-job-id="${job.jobId}">\xD7</button>
 			`;
         jobItem.addEventListener("click", (e) => {
           if (e.target.classList.contains("delete-button")) return;
@@ -104,7 +142,7 @@
         const deleteButton = jobItem.querySelector(".delete-button");
         deleteButton.addEventListener("click", (e) => {
           e.stopPropagation();
-          DeleteJob(job.id);
+          DeleteJob(job.jobId);
         });
         container.appendChild(jobItem);
       }
@@ -122,9 +160,11 @@
   }
   DisplayJobs();
   DisplayGraphQLResponses();
-  document.getElementById("clearGraphQL")?.addEventListener("click", () => {
-    chrome.storage.local.remove(["graphqlResponses", "exportedAt"], () => {
-      DisplayGraphQLResponses();
-    });
+  graphqlToggleButton?.addEventListener("click", () => {
+    const container = document.getElementById("graphqlResponses");
+    if (!container) return;
+    const isHidden = container.style.display === "none";
+    container.style.display = isHidden ? "block" : "none";
+    graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
   });
 })();

@@ -7,16 +7,20 @@
   if (currentDomain.includes(targetWebsite)) {
     console.log("[AutoShake] You are on " + targetWebsite + "!");
     window.addEventListener("message", (event) => {
-      if (event.data.type === "AUTOSHAKE_GRAPHQL_UPDATE") {
-        const responses = event.data.responses || [];
-        if (responses.length > 0) {
-          chrome.storage.local.set({
-            graphqlResponses: responses,
-            exportedAt: (/* @__PURE__ */ new Date()).toISOString()
-          }, () => {
-            console.log("[AutoShake] Saved", responses.length, "GraphQL responses to storage");
+      if (event.data.type === "AUTOSHAKE_GRAPHQL_RESPONSE") {
+        const jobId = event.data.jobId;
+        const response = event.data.response;
+        if (!jobId || !response) return;
+        chrome.storage.local.get("jobData", (result) => {
+          const jobData = result.jobData || {};
+          if (!jobData[jobId]) {
+            jobData[jobId] = { jobId, graphqlResponses: [], clicked: false };
+          }
+          jobData[jobId].graphqlResponses.push(response);
+          chrome.storage.local.set({ jobData }, () => {
+            console.log("[AutoShake] Stored GraphQL response for job ID:", jobId);
           });
-        }
+        });
       }
     });
   }
@@ -26,31 +30,39 @@
     if (link) {
       const href = link.getAttribute("href") || "";
       const text = link.textContent || "";
+      console.log("[AutoShake] Link clicked:", {
+        href,
+        text,
+        target: link.target,
+        classList: link.className
+      });
       if (href.includes("/job-search/") && href.includes("page")) {
         console.log("[AutoShake] Job listing link detected!", href);
+        const jobIdMatch = href.match(/\/job-search\/(\d+)/);
+        const jobId = jobIdMatch ? jobIdMatch[1] : null;
+        if (!jobId) {
+          console.warn("[AutoShake] Could not extract job ID from href:", href);
+          return;
+        }
         const jobEntry = {
+          jobId,
           href,
           text,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-          id: Date.now()
-          // unique id
+          clickTimestamp: (/* @__PURE__ */ new Date()).toISOString()
         };
-        window.postMessage(
-          {
-            type: "AUTOSHAKE_JOB_CLICKED",
-            jobEntry
-          },
-          "*"
-        );
         if (chrome?.storage?.local) {
-          chrome.storage.local.get("jobList", (result) => {
-            const jobList = result.jobList || [];
-            if (!jobList.some((job) => job.href === href)) {
-              jobList.push(jobEntry);
-              chrome.storage.local.set({ jobList }, () => {
-                console.log("[AutoShake] Job added to list:", jobEntry);
-              });
+          chrome.storage.local.get("jobData", (result) => {
+            const jobData = result.jobData || {};
+            if (!jobData[jobId]) {
+              jobData[jobId] = { jobId, graphqlResponses: [], clicked: true };
             }
+            jobData[jobId].href = href;
+            jobData[jobId].text = text;
+            jobData[jobId].clickTimestamp = jobEntry.clickTimestamp;
+            jobData[jobId].clicked = true;
+            chrome.storage.local.set({ jobData }, () => {
+              console.log("[AutoShake] Job added/updated:", jobEntry);
+            });
           });
         } else if (chrome?.runtime?.sendMessage) {
           chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response) => {

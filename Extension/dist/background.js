@@ -5,14 +5,22 @@
     if (message?.type !== "storeJob" || !message.jobEntry) {
       return false;
     }
-    chrome.storage.local.get("jobList", (result) => {
-      const jobList = result.jobList || [];
-      const exists = jobList.some((job) => job.href === message.jobEntry.href);
-      if (!exists) {
-        jobList.push(message.jobEntry);
+    const jobId = message.jobEntry.jobId;
+    if (!jobId) {
+      sendResponse({ success: false, error: "No jobId provided" });
+      return true;
+    }
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      if (!jobData[jobId]) {
+        jobData[jobId] = { jobId, graphqlResponses: [], clicked: true };
       }
-      chrome.storage.local.set({ jobList }, () => {
-        sendResponse({ success: true, added: !exists });
+      jobData[jobId].href = message.jobEntry.href;
+      jobData[jobId].text = message.jobEntry.text;
+      jobData[jobId].clickTimestamp = message.jobEntry.clickTimestamp;
+      jobData[jobId].clicked = true;
+      chrome.storage.local.set({ jobData }, () => {
+        sendResponse({ success: true });
       });
     });
     return true;
