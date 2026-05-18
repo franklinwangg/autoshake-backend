@@ -11,13 +11,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 		return true;
 	}
 
-	chrome.storage.local.get("jobData", (result) => {
+	chrome.storage.local.get(["trackingEnabled", "jobData"], (result) => {
+		const enabled = result.trackingEnabled !== false; // default true
+		if (!enabled) {
+			sendResponse({ success: false, error: "tracking_disabled" });
+			return true;
+		}
+
 		const jobData = result.jobData || {};
-		
+        
 		if (!jobData[jobId]) {
 			jobData[jobId] = { jobId, graphqlResponses: [], clicked: true };
 		}
-		
+        
 		jobData[jobId].href = message.jobEntry.href;
 		jobData[jobId].text = message.jobEntry.text;
 		jobData[jobId].clickTimestamp = message.jobEntry.clickTimestamp;

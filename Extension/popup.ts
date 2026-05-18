@@ -1,5 +1,5 @@
 const toggle: HTMLInputElement | null = document.getElementById("stateToggle") as HTMLInputElement | null;
-const stateText: HTMLElement | null = document.getElementById("toggleLabel");
+const stateText: HTMLElement | null = document.getElementById("trackingLabel");
 const jobList: HTMLElement | null = document.getElementById("jobList");
 const graphqlToggleButton: HTMLElement | null = document.getElementById("toggleGraphQL");
 const graphqlStats: HTMLElement | null = document.getElementById("graphqlStats");
@@ -124,7 +124,7 @@ function DeleteJob(jobId: string) {
 
 function UpdateToggleLabel(isOn: boolean) {
 	if (stateText) {
-		stateText.textContent = `State: ${isOn ? "On" : "Off"}`;
+		stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}\n`;
 	}
 	else {
 		throw new Error("No state text found in html!");
@@ -189,15 +189,25 @@ function DisplayJobs() {
 
 // ----------------- Code that runs when popup opens -----------------
 
-if (toggle) {
-	UpdateToggleLabel(toggle.checked);
-	toggle.addEventListener("change", () => {
-		UpdateToggleLabel(toggle.checked);
-	});
-}
-else {
-	throw new Error("No toggle found in html!");
-}
+// Initialize toggle state from storage and persist changes
+chrome.storage.local.get(["trackingEnabled"], (result) => {
+	const enabled = result.trackingEnabled !== false; // default true
+	if (toggle) {
+		toggle.checked = enabled;
+	}
+	UpdateToggleLabel(enabled);
+
+	if (toggle) {
+		toggle.addEventListener("change", () => {
+			const isOn = !!toggle.checked;
+			chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+				UpdateToggleLabel(isOn);
+			});
+		});
+	} else {
+		throw new Error("No toggle found in html!");
+	}
+});
 
 // Display jobs and GraphQL stats when popup opens
 DisplayJobs();

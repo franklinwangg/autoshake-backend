@@ -72,7 +72,12 @@ document.addEventListener("click", (event) => {
 			
 			// Store in jobData indexed by jobId
 			if (chrome?.storage?.local) {
-				chrome.storage.local.get("jobData", (result) => {
+				chrome.storage.local.get(["trackingEnabled", "jobData"], (result) => {
+					const enabled = result.trackingEnabled !== false; // default true
+					if (!enabled) {
+						console.log("[AutoShake] Tracking disabled; ignoring click for job ID:", jobId);
+						return;
+					}
 					const jobData = result.jobData || {};
 					
 					// Initialize or update job entry

@@ -10,7 +10,12 @@
       sendResponse({ success: false, error: "No jobId provided" });
       return true;
     }
-    chrome.storage.local.get("jobData", (result) => {
+    chrome.storage.local.get(["trackingEnabled", "jobData"], (result) => {
+      const enabled = result.trackingEnabled !== false;
+      if (!enabled) {
+        sendResponse({ success: false, error: "tracking_disabled" });
+        return true;
+      }
       const jobData = result.jobData || {};
       if (!jobData[jobId]) {
         jobData[jobId] = { jobId, graphqlResponses: [], clicked: true };

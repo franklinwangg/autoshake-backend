@@ -2,7 +2,7 @@
 (() => {
   // popup.ts
   var toggle = document.getElementById("stateToggle");
-  var stateText = document.getElementById("toggleLabel");
+  var stateText = document.getElementById("trackingLabel");
   var jobList = document.getElementById("jobList");
   var graphqlToggleButton = document.getElementById("toggleGraphQL");
   var graphqlStats = document.getElementById("graphqlStats");
@@ -102,7 +102,8 @@
   }
   function UpdateToggleLabel(isOn) {
     if (stateText) {
-      stateText.textContent = `State: ${isOn ? "On" : "Off"}`;
+      stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}
+`;
     } else {
       throw new Error("No state text found in html!");
     }
@@ -150,14 +151,23 @@
       jobList.appendChild(container);
     });
   }
-  if (toggle) {
-    UpdateToggleLabel(toggle.checked);
-    toggle.addEventListener("change", () => {
-      UpdateToggleLabel(toggle.checked);
-    });
-  } else {
-    throw new Error("No toggle found in html!");
-  }
+  chrome.storage.local.get(["trackingEnabled"], (result) => {
+    const enabled = result.trackingEnabled !== false;
+    if (toggle) {
+      toggle.checked = enabled;
+    }
+    UpdateToggleLabel(enabled);
+    if (toggle) {
+      toggle.addEventListener("change", () => {
+        const isOn = !!toggle.checked;
+        chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+          UpdateToggleLabel(isOn);
+        });
+      });
+    } else {
+      throw new Error("No toggle found in html!");
+    }
+  });
   DisplayJobs();
   DisplayGraphQLResponses();
   graphqlToggleButton?.addEventListener("click", () => {

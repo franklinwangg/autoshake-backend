@@ -51,7 +51,12 @@
           clickTimestamp: (/* @__PURE__ */ new Date()).toISOString()
         };
         if (chrome?.storage?.local) {
-          chrome.storage.local.get("jobData", (result) => {
+          chrome.storage.local.get(["trackingEnabled", "jobData"], (result) => {
+            const enabled = result.trackingEnabled !== false;
+            if (!enabled) {
+              console.log("[AutoShake] Tracking disabled; ignoring click for job ID:", jobId);
+              return;
+            }
             const jobData = result.jobData || {};
             if (!jobData[jobId]) {
               jobData[jobId] = { jobId, graphqlResponses: [], clicked: true };
