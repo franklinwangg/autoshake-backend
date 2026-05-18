@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(npm install *)",
+      "Bash(curl -s http://localhost:11434)",
+      "Bash(del \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\ml-pipeline\\\\controller\\\\server.js\")",
+      "Bash(Get-ChildItem -Recurse \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\backend2\" -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\ml-pipeline\" -Recurse -Force | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\backend2\\\\backend\\\\ml-pipeline\" -Recurse -Force | ForEach-Object { $_.FullName })",
+      "PowerShell(python --version)",
+      "PowerShell(python -m pip --version)"
+    ]
+  }
+}

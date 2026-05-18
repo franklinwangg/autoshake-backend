@@ -21,6 +21,23 @@ python-resume/.env
 python-resume/generated/
 
 # ------------------------------
+# ML Pipeline (JS — legacy, can delete)
+# ------------------------------
+ml-pipeline/node_modules/
+ml-pipeline/.env
+ml-pipeline/outputs/*
+!ml-pipeline/outputs/.gitkeep
+
+# ------------------------------
+# ML Pipeline (Python)
+# ------------------------------
+backend2/backend/ml_pipeline/.env
+backend2/backend/ml_pipeline/outputs/*
+!backend2/backend/ml_pipeline/outputs/.gitkeep
+backend2/backend/ml_pipeline/__pycache__/
+backend2/backend/ml_pipeline/**/__pycache__/
+
+# ------------------------------
 # OS-specific junk
 # ------------------------------
 .DS_Store
