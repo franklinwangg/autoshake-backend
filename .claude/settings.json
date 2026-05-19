@@ -12,7 +12,8 @@
       "PowerShell(Get-ChildItem \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\ml-pipeline\" -Recurse -Force | ForEach-Object { $_.FullName })",
       "PowerShell(Get-ChildItem \"c:\\\\Users\\\\frank\\\\Desktop\\\\Drive\\\\3. Projects\\\\AutoShake\\\\backend2\\\\backend\\\\ml-pipeline\" -Recurse -Force | ForEach-Object { $_.FullName })",
       "PowerShell(python --version)",
-      "PowerShell(python -m pip --version)"
+      "PowerShell(python -m pip --version)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\frank\\\\Desktop\\\\AutoShake\\\\backend2\\\\backend\\\\ml_pipeline\" -Recurse -Force | ForEach-Object { $_.FullName })"
     ]
   }
 }
