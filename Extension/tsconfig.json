@@ -9,6 +9,8 @@
     // See also https://aka.ms/tsconfig/module
     "module": "ESNext",
     "target": "ES6",
+    "lib": ["DOM", "ESNext"],
+    "resolveJsonModule": true,
     "types": ["chrome"],
     // For nodejs:
     // "lib": ["esnext"],

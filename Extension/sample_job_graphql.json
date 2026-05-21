@@ -1,0 +1,156 @@
+{
+  "data": {
+    "job": {
+      "id": "11054220",
+      "title": "Software Developer AI/ML",
+      "createdAt": "2026-05-15T13:45:10-07:00",
+      "expirationDate": "2026-06-14T21:59:59-07:00",
+      "employer": {
+        "id": "1078661",
+        "name": "Neurohire.ai",
+        "logo": {
+          "url": "https://joinhandshake-production.imgix.net/app/public/assets/institutions/1078661/original/hs-emp-logo-Screenshot_2025-10-18_at_3.34.21_PM_2_%282%29.png?ixlib=rb-4.1.1&w=150&h=150&fit=crop&v=1762537650&s=9539ada9287be1d3118e9af92dea979d",
+          "__typename": "Image"
+        },
+        "industry": {
+          "id": "953",
+          "name": "Management Consulting",
+          "__typename": "Industry"
+        },
+        "__typename": "Employer"
+      },
+      "__typename": "Job",
+      "remunerations": [
+        {
+          "id": "2",
+          "behaviorIdentifier": "Bonus",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "5",
+          "behaviorIdentifier": "Equity package",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "1",
+          "behaviorIdentifier": "Signing bonus",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "6",
+          "behaviorIdentifier": "Medical",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "7",
+          "behaviorIdentifier": "Vision",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "8",
+          "behaviorIdentifier": "Dental",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "12",
+          "behaviorIdentifier": "401(k) match",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "16",
+          "behaviorIdentifier": "Student loan repayment",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "14",
+          "behaviorIdentifier": "Life insurance",
+          "__typename": "Remuneration"
+        },
+        {
+          "id": "23",
+          "behaviorIdentifier": "Career development",
+          "__typename": "Remuneration"
+        }
+      ],
+      "additionalBenefitsLink": "",
+      "salaryRange": {
+        "id": "6102512",
+        "min": 8000000,
+        "max": 9000000,
+        "currency": "USD",
+        "paySchedule": {
+          "id": "2",
+          "behaviorIdentifier": "ANNUAL_SALARY",
+          "name": "Annual Salary",
+          "friendlyName": "Per year",
+          "__typename": "PaySchedule"
+        },
+        "__typename": "Salary"
+      },
+      "salaryType": {
+        "id": "1",
+        "name": "Paid",
+        "behaviorIdentifier": "PAID",
+        "__typename": "SalaryTypeOption"
+      },
+      "payCurrencyCode": "USD",
+      "description": "About\n\nNeuroHire is a Texas-based SaaS company building AI-powered hiring solutions that help organizations identify talent based on real skills, experience, and potential.\nOur platform combines scalable software systems with AI-driven workflows to improve how candidates are matched, analyzed, and recommended. We’re looking for developers who enjoy building strong product systems while working with modern AI and machine learning technologies.\n\nRole Overview\n\nAs a Software Developer (AI/ML Focus), you will work on backend systems, APIs, and intelligent product features that power the NeuroHire platform.\n\nThis role is ideal for someone with strong software engineering fundamentals who also has exposure to AI/ML technologies and enjoys building data-driven applications.\n\nYou’ll collaborate closely with AI engineers, data scientists, and product teams to develop scalable, production-ready solutions.\n\nWhat You’ll Work On\n\nDesign and develop scalable backend services and APIs\nBuild software systems that support AI-powered product features\nIntegrate machine learning models and AI workflows into production environments\nWork with structured and unstructured datasets for intelligent processing\nSupport features such as resume parsing, recommendation systems, and semantic matching\nCollaborate with AI/ML teams on model integration and optimization\nImprove system performance, scalability, and reliability\nDebug and resolve production issues across backend services\nContribute to architecture and technical decision-making\nWhat We’re Looking For\n\nBachelor’s degree in Computer Science, Software Engineering, or related field\n0-2 years of experience in software development\nStrong programming skills in Python, Java, or Node.js\nExperience building REST APIs and backend systems\nFamiliarity with machine learning concepts and AI-driven applications\nUnderstanding of databases, system design, and cloud environments\nExperience working with AWS, Azure, or GCP\nStrong analytical and problem-solving skills\nAbility to work in a fast-paced startup environment\nNice to Have\n\nExperience with TensorFlow, PyTorch, or scikit-learn\nFamiliarity with LLMs, NLP, embeddings, or recommendation systems\nExperience with frameworks like FastAPI, Django, or Flask\nExposure to Docker, Kubernetes, or CI/CD pipelines\nExperience working in SaaS or AI-driven product companies",
+      "hybrid": false,
+      "remote": true,
+      "onSite": false,
+      "locations": [],
+      "workLocationType": "USA",
+      "startDate": null,
+      "endDate": null,
+      "jobType": {
+        "id": "9",
+        "name": "Job",
+        "behaviorIdentifier": "JOB",
+        "__typename": "JobTypeEnum"
+      },
+      "employmentType": {
+        "id": "1",
+        "name": "Full-Time",
+        "behaviorIdentifier": "FULL_TIME",
+        "__typename": "EmploymentTypeEnum"
+      },
+      "workStudy": false,
+      "duration": "PERMANENT",
+      "workSchedule": null,
+      "studentScreen": {
+        "id": "14919558",
+        "acceptsCptCandidates": false,
+        "acceptsOptCandidates": true,
+        "acceptsOptCptCandidates": true,
+        "workAuthRequired": true,
+        "workAuthNotDisclosed": false,
+        "willingToSponsorCandidate": false,
+        "__typename": "StudentScreen"
+      },
+      "attachments": [],
+      "follow": null,
+      "aiFitCheckEnabled": false
+    },
+    "currentUser": {
+      "id": "58593704",
+      "slug": "f2egrn",
+      "locationInterests": [
+        {
+          "id": "271790723",
+          "interesting": {
+            "id": "172241314",
+            "name": "2160 240th St, Los Angeles, California 90012, United States",
+            "latitude": 34.052205,
+            "longitude": -118.243714,
+            "city": "Los Angeles",
+            "state": "California",
+            "country": "United States",
+            "__typename": "Location"
+          },
+          "__typename": "Interest"
+        }
+      ],
+      "__typename": "User"
+    }
+  }
+}
