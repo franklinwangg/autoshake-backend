@@ -1,0 +1,7 @@
+anthropic
+beautifulsoup4
+fastapi
+httpx
+python-dotenv
+uvicorn[standard]
+weasyprint

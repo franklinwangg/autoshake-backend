@@ -1,12 +1,11 @@
-import os
 import json
-from pathlib import Path
+import os
 
 import httpx
 import anthropic
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+load_dotenv()
 
 PROVIDER = os.getenv("LLM_PROVIDER", "claude")
 CLAUDE_MODEL = "claude-opus-4-7"
