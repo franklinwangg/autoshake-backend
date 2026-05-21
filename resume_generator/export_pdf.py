@@ -1,5 +1,5 @@
 from weasyprint import HTML
-from .edit_html import ResumeEditor
+from edit_html import ResumeEditor
 
 def edit_resume(
     html_path: str,

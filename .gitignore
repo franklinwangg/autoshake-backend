@@ -1,1 +1,30 @@
-resume_generator/.venv
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Generated pipeline outputs
+ml_backend/backend/ml_pipeline/outputs/*.json
+resume_generator/output/
+output.pdf
+output.html
+
+# Generated PDF/LaTeX artifacts
+*.pdf
+*.tex
+*.aux
+*.log
+
+# IDE / local
+.claude/settings.local.json

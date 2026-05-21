@@ -1,0 +1,122 @@
+{
+  "basics": {
+    "name": "Alex Chen",
+    "headline": "Software Engineer | ML Systems | Full Stack",
+    "email": "alex.chen@gmail.com",
+    "phone": "+1 831 555 0192",
+    "location": {
+      "city": "Santa Cruz",
+      "state": "CA"
+    },
+    "links": {
+      "linkedin": "https://linkedin.com/in/alexchen",
+      "github": "https://github.com/alexchen",
+      "website": "https://alexchen.dev"
+    },
+    "summary": "Computer science student with experience building full-stack web applications and machine learning systems. Comfortable across the stack from React frontends to Python backends to cloud deployment."
+  },
+
+  "education": [
+    {
+      "institution": "University of California, Santa Cruz",
+      "degree": "Bachelor of Science",
+      "field": "Computer Science",
+      "startDate": "2022-09",
+      "endDate": "2026-06",
+      "gpa": "3.85",
+      "honors": ["Dean's List"],
+      "coursework": [
+        "Machine Learning",
+        "Distributed Systems",
+        "Algorithms",
+        "Computer Vision",
+        "Database Systems"
+      ]
+    }
+  ],
+
+  "experience": [
+    {
+      "company": "Verkada",
+      "position": "Software Engineer Intern",
+      "location": "San Mateo, CA",
+      "startDate": "2025-06",
+      "endDate": "2025-09",
+      "bullets": [
+        "Built a real-time alert aggregation service in Python that reduced on-call noise by 40%.",
+        "Migrated three internal dashboards from AngularJS to React, cutting load time by 60%.",
+        "Wrote an ETL pipeline using Airflow and BigQuery to process 2M+ device events per day.",
+        "Collaborated with firmware and data platform teams in a two-week Agile sprint cycle."
+      ]
+    },
+    {
+      "company": "UCSC Baskin Engineering Research Lab",
+      "position": "Undergraduate Researcher",
+      "location": "Santa Cruz, CA",
+      "startDate": "2024-01",
+      "endDate": "2025-06",
+      "bullets": [
+        "Trained and evaluated object detection models (YOLOv8) on custom drone footage datasets.",
+        "Built a data labeling pipeline using Label Studio that cut annotation time by 50%.",
+        "Reproduced three prior baselines and documented failure modes for a UAM safety paper.",
+        "Presented findings at the 2025 UCSC Research Symposium."
+      ]
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "AutoShake",
+      "date": "2025",
+      "description": "End-to-end pipeline that generates tailored resume PDFs from Handshake job postings using LLMs.",
+      "bullets": [
+        "Built a FastAPI backend that runs a two-stage LLM pipeline (skill extraction → resume rewrite).",
+        "Integrated Claude API with adaptive thinking for high-quality resume tailoring.",
+        "Designed a WeasyPrint-based PDF generation layer from a structured JSON schema.",
+        "Built a Chrome extension that scrapes job postings and sends them to the backend."
+      ],
+      "technologies": ["Python", "FastAPI", "Claude API", "WeasyPrint", "BeautifulSoup", "TypeScript"]
+    },
+    {
+      "name": "Distributed Key-Value Store",
+      "date": "2024",
+      "description": "A fault-tolerant distributed KV store implementing the Raft consensus algorithm.",
+      "bullets": [
+        "Implemented leader election, log replication, and snapshotting in Go.",
+        "Achieved linearizable reads and writes under network partitions in a 5-node cluster.",
+        "Written as part of MIT 6.824 distributed systems coursework."
+      ],
+      "technologies": ["Go", "Raft", "gRPC"]
+    },
+    {
+      "name": "Campus Event Finder",
+      "date": "2023",
+      "description": "Full-stack web app that aggregates UCSC campus events from multiple sources.",
+      "bullets": [
+        "Built REST API with Node.js and PostgreSQL, deployed on Railway.",
+        "Scraped and normalized event data from five campus sources using Cheerio.",
+        "Developed React frontend with real-time search and filter UI."
+      ],
+      "technologies": ["React", "Node.js", "PostgreSQL", "Cheerio"]
+    }
+  ],
+
+  "skills": [
+    {
+      "category": "Languages",
+      "items": ["Python", "TypeScript", "JavaScript", "Go", "SQL", "C++"]
+    },
+    {
+      "category": "Frameworks & Tools",
+      "items": ["React", "FastAPI", "Node.js", "Docker", "Airflow", "PostgreSQL"]
+    },
+    {
+      "category": "ML / AI",
+      "items": ["PyTorch", "YOLOv8", "scikit-learn", "Claude API", "Hugging Face"]
+    },
+    {
+      "category": "Cloud",
+      "items": ["AWS EC2", "BigQuery", "Railway", "GitHub Actions"]
+    }
+  ]
+}
