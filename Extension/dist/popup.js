@@ -1,11 +1,6 @@
 "use strict";
 (() => {
-  // popup.ts
-  var toggle = document.getElementById("stateToggle");
-  var stateText = document.getElementById("trackingLabel");
-  var jobList = document.getElementById("jobList");
-  var graphqlToggleButton = document.getElementById("toggleGraphQL");
-  var graphqlStats = document.getElementById("graphqlStats");
+  // popupUtils.ts
   function GetRelativeTime(isoString) {
     const now = /* @__PURE__ */ new Date();
     const past = new Date(isoString);
@@ -30,7 +25,7 @@
       if (!current || typeof current !== "object") return null;
       current = current[segment];
     }
-    return current;
+    return current ?? null;
   }
   function ExtractJobField(responses, path) {
     if (!Array.isArray(responses)) return null;
@@ -55,6 +50,20 @@
       }
     }
     return null;
+  }
+
+  // popup.ts
+  var toggle = null;
+  var stateText = null;
+  var jobList = null;
+  var graphqlToggleButton = null;
+  var graphqlStats = null;
+  function initializePopupDOMElements() {
+    toggle = document.getElementById("stateToggle");
+    stateText = document.getElementById("trackingLabel");
+    jobList = document.getElementById("jobList");
+    graphqlToggleButton = document.getElementById("toggleGraphQL");
+    graphqlStats = document.getElementById("graphqlStats");
   }
   function DisplayGraphQLResponses() {
     const container = document.getElementById("graphqlResponses");
@@ -104,8 +113,6 @@
     if (stateText) {
       stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}
 `;
-    } else {
-      throw new Error("No state text found in html!");
     }
   }
   function DisplayJobs() {
@@ -151,30 +158,33 @@
       jobList.appendChild(container);
     });
   }
-  chrome.storage.local.get(["trackingEnabled"], (result) => {
-    const enabled = result.trackingEnabled !== false;
-    if (toggle) {
-      toggle.checked = enabled;
-    }
-    UpdateToggleLabel(enabled);
-    if (toggle) {
-      toggle.addEventListener("change", () => {
-        const isOn = !!toggle.checked;
-        chrome.storage.local.set({ trackingEnabled: isOn }, () => {
-          UpdateToggleLabel(isOn);
-        });
+  if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
+    initializePopupDOMElements();
+    if (toggle && stateText && jobList) {
+      chrome.storage.local.get(["trackingEnabled"], (result) => {
+        const enabled = result.trackingEnabled !== false;
+        if (toggle) {
+          toggle.checked = enabled;
+        }
+        UpdateToggleLabel(enabled);
+        if (toggle) {
+          toggle.addEventListener("change", () => {
+            const isOn = !!toggle.checked;
+            chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+              UpdateToggleLabel(isOn);
+            });
+          });
+        }
       });
-    } else {
-      throw new Error("No toggle found in html!");
+      DisplayJobs();
+      DisplayGraphQLResponses();
+      graphqlToggleButton?.addEventListener("click", () => {
+        const container = document.getElementById("graphqlResponses");
+        if (!container) return;
+        const isHidden = container.style.display === "none";
+        container.style.display = isHidden ? "block" : "none";
+        graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
+      });
     }
-  });
-  DisplayJobs();
-  DisplayGraphQLResponses();
-  graphqlToggleButton?.addEventListener("click", () => {
-    const container = document.getElementById("graphqlResponses");
-    if (!container) return;
-    const isHidden = container.style.display === "none";
-    container.style.display = isHidden ? "block" : "none";
-    graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
-  });
+  }
 })();

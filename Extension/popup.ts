@@ -1,68 +1,20 @@
-const toggle: HTMLInputElement | null = document.getElementById("stateToggle") as HTMLInputElement | null;
-const stateText: HTMLElement | null = document.getElementById("trackingLabel");
-const jobList: HTMLElement | null = document.getElementById("jobList");
-const graphqlToggleButton: HTMLElement | null = document.getElementById("toggleGraphQL");
-const graphqlStats: HTMLElement | null = document.getElementById("graphqlStats");
+// DOM elements - will be initialized when initializePopup() is called
+let toggle: HTMLInputElement | null = null;
+let stateText: HTMLElement | null = null;
+let jobList: HTMLElement | null = null;
+let graphqlToggleButton: HTMLElement | null = null;
+let graphqlStats: HTMLElement | null = null;
 
-// Helper function to calculate relative time (e.g., "5 minutes ago")
-function GetRelativeTime(isoString: string): string {
-	const now: Date = new Date();
-	const past: Date = new Date(isoString);
-	const diffMs: number = now.getTime() - past.getTime();
-	const diffMins: number = Math.floor(diffMs / 60000);
-	const diffHours: number = Math.floor(diffMins / 60);
-	const diffDays: number = Math.floor(diffHours / 24);
+import { GetRelativeTime, getFieldFromObject, ExtractJobField } from './popupUtils';
 
-	if (diffMins < 1){
-		return "just now";
-	}
-	if (diffMins < 60){
-		return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-	}
-	if (diffHours < 24){
-		return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-	}
-	
-	return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+function initializePopupDOMElements() {
+	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
+	stateText = document.getElementById("trackingLabel");
+	jobList = document.getElementById("jobList");
+	graphqlToggleButton = document.getElementById("toggleGraphQL");
+	graphqlStats = document.getElementById("graphqlStats");
 }
 
-function getFieldFromObject(obj: any, path: string[]): any {
-	let current = obj;
-	for (const segment of path) {
-		if (!current || typeof current !== "object") return null;
-		current = current[segment];
-	}
-	return current;
-}
-
-function ExtractJobField(responses: any[], path: string[]): string | null {
-	if (!Array.isArray(responses)) return null;
-
-	for (const response of responses) {
-		if (!response || typeof response.data !== "string") continue;
-
-		try {
-			const parsed = JSON.parse(response.data);
-			const candidate = getFieldFromObject(parsed?.data, path);
-			if (typeof candidate === "string" && candidate.trim().length > 0) {
-				return candidate;
-			}
-
-			if (parsed?.data && typeof parsed.data === "object") {
-				for (const value of Object.values(parsed.data)) {
-					const nested = getFieldFromObject(value, path);
-					if (typeof nested === "string" && nested.trim().length > 0) {
-						return nested;
-					}
-				}
-			}
-		} catch {
-			continue;
-		}
-	}
-
-	return null;
-}
 
 function DisplayGraphQLResponses() {
   const container = document.getElementById("graphqlResponses");
@@ -126,9 +78,6 @@ function UpdateToggleLabel(isOn: boolean) {
 	if (stateText) {
 		stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}\n`;
 	}
-	else {
-		throw new Error("No state text found in html!");
-	}
 }
 
 function DisplayJobs() {
@@ -189,35 +138,43 @@ function DisplayJobs() {
 
 // ----------------- Code that runs when popup opens -----------------
 
-// Initialize toggle state from storage and persist changes
-chrome.storage.local.get(["trackingEnabled"], (result) => {
-	const enabled = result.trackingEnabled !== false; // default true
-	if (toggle) {
-		toggle.checked = enabled;
-	}
-	UpdateToggleLabel(enabled);
+// Only initialize if in browser context (not during tests)
+// Check that we're not in a test environment by verifying basic DOM elements exist
+if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof (globalThis as any).vi === "undefined") {
+	// Initialize DOM elements
+	initializePopupDOMElements();
 
-	if (toggle) {
-		toggle.addEventListener("change", () => {
-			const isOn = !!toggle.checked;
-			chrome.storage.local.set({ trackingEnabled: isOn }, () => {
-				UpdateToggleLabel(isOn);
-			});
+	// Only proceed if critical DOM elements exist (not in test environment)
+	if (toggle && stateText && jobList) {
+		// Initialize toggle state from storage and persist changes
+		chrome.storage.local.get(["trackingEnabled"], (result) => {
+			const enabled = result.trackingEnabled !== false; // default true
+			if (toggle) {
+				toggle.checked = enabled;
+			}
+			UpdateToggleLabel(enabled);
+
+			if (toggle) {
+				toggle.addEventListener("change", () => {
+					const isOn = !!toggle.checked;
+					chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+						UpdateToggleLabel(isOn);
+					});
+				});
+			}
 		});
-	} else {
-		throw new Error("No toggle found in html!");
+
+		// Display jobs and GraphQL stats when popup opens
+		DisplayJobs();
+		DisplayGraphQLResponses();
+
+		graphqlToggleButton?.addEventListener("click", () => {
+		  const container = document.getElementById("graphqlResponses");
+		  if (!container) return;
+
+		  const isHidden = container.style.display === "none";
+		  container.style.display = isHidden ? "block" : "none";
+		  graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
+		});
 	}
-});
-
-// Display jobs and GraphQL stats when popup opens
-DisplayJobs();
-DisplayGraphQLResponses();
-
-graphqlToggleButton?.addEventListener("click", () => {
-  const container = document.getElementById("graphqlResponses");
-  if (!container) return;
-
-  const isHidden = container.style.display === "none";
-  container.style.display = isHidden ? "block" : "none";
-  graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
-});
+}

@@ -1,6 +1,6 @@
-const isObject = (value) => value !== null && typeof value === "object";
+export const isObject = (value) => value !== null && typeof value === "object";
 
-const normalizeId = (value) => {
+export const normalizeId = (value) => {
   if (typeof value === "string" && /^\d+$/.test(value)) return value;
   if (typeof value === "number" && Number.isInteger(value)) return String(value);
   return null;

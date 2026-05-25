@@ -1,6 +1,45 @@
 "use strict";
 (() => {
   // inject.ts
+  var isObject = (value) => value !== null && typeof value === "object";
+  var normalizeId = (value) => {
+    if (typeof value === "string" && /^\d+$/.test(value)) return value;
+    if (typeof value === "number" && Number.isInteger(value)) return String(value);
+    return null;
+  };
+  var findJobIdInObject = (obj) => {
+    if (!isObject(obj)) return null;
+    if (obj.__typename === "Job" && obj.id) {
+      return normalizeId(obj.id);
+    }
+    if (isObject(obj.job) && obj.job.id) {
+      return normalizeId(obj.job.id);
+    }
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const found = findJobIdInObject(item);
+        if (found) return found;
+      }
+      return null;
+    }
+    for (const key of Object.keys(obj)) {
+      const value = obj[key];
+      if (key === "jobId" || key === "job_id" || key === "jobID") {
+        const normalized = normalizeId(value);
+        if (normalized) return normalized;
+      }
+      if (key === "variables" && isObject(value)) {
+        const candidate = value.jobId || value.id || value.job_id || value.jobID;
+        const normalized = normalizeId(candidate);
+        if (normalized) return normalized;
+      }
+      if (isObject(value) || Array.isArray(value)) {
+        const found = findJobIdInObject(value);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
   (() => {
     if (window.__AUTOSHAKE_INITIALIZED__) {
       console.log("[AutoShake] inject.js already running, skipping re-init");
@@ -11,51 +50,12 @@
     window.__AUTOSHAKE_GRAPHQL_RESPONSES__ = [];
     window.__AUTOSHAKE_CLICKED_JOBS__ = [];
     const origFetch = window.fetch;
-    const isObject = (value) => value !== null && typeof value === "object";
     const parseJSON = (text) => {
       try {
         return JSON.parse(text);
       } catch {
         return null;
       }
-    };
-    const normalizeId = (value) => {
-      if (typeof value === "string" && /^\d+$/.test(value)) return value;
-      if (typeof value === "number" && Number.isInteger(value)) return String(value);
-      return null;
-    };
-    const findJobIdInObject = (obj) => {
-      if (!isObject(obj)) return null;
-      if (obj.__typename === "Job" && obj.id) {
-        return normalizeId(obj.id);
-      }
-      if (isObject(obj.job) && obj.job.id) {
-        return normalizeId(obj.job.id);
-      }
-      if (Array.isArray(obj)) {
-        for (const item of obj) {
-          const found = findJobIdInObject(item);
-          if (found) return found;
-        }
-        return null;
-      }
-      for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        if (key === "jobId" || key === "job_id" || key === "jobID") {
-          const normalized = normalizeId(value);
-          if (normalized) return normalized;
-        }
-        if (key === "variables" && isObject(value)) {
-          const candidate = value.jobId || value.id || value.job_id || value.jobID;
-          const normalized = normalizeId(candidate);
-          if (normalized) return normalized;
-        }
-        if (isObject(value) || Array.isArray(value)) {
-          const found = findJobIdInObject(value);
-          if (found) return found;
-        }
-      }
-      return null;
     };
     const extractJobIdFromRequest = (args) => {
       try {
