@@ -78,7 +78,7 @@
       container.innerHTML = "";
       responses.slice().reverse().forEach((r, i) => {
         const parsed = JSON.parse(r.data);
-        const operationName = parsed?.data ? Object.keys(parsed.data)[0] : "unknown";
+        const operationName = parsed?.data ? Object.keys(parsed.data)[0] ?? "unknown" : "unknown";
         const item = document.createElement("div");
         item.className = "graphql-item";
         item.innerHTML = `
@@ -89,10 +89,11 @@
         </div>
         <pre class="graphql-body" id="body-${i}" style="display:none">${JSON.stringify(parsed, null, 2)}</pre>
       `;
-        item.querySelector(".graphql-header").addEventListener("click", () => {
+        const headerElement = item.querySelector(".graphql-header");
+        headerElement?.addEventListener("click", () => {
           const body = document.getElementById(`body-${i}`);
           const toggle2 = item.querySelector(".graphql-toggle");
-          const isHidden = body.style.display === "none";
+          const isHidden = body?.style.display === "none";
           body.style.display = isHidden ? "block" : "none";
           toggle2.textContent = isHidden ? "\u25BC" : "\u25B6";
         });
@@ -148,7 +149,7 @@
           chrome.tabs.create({ url: fullUrl });
         });
         const deleteButton = jobItem.querySelector(".delete-button");
-        deleteButton.addEventListener("click", (e) => {
+        deleteButton?.addEventListener("click", (e) => {
           e.stopPropagation();
           DeleteJob(job.jobId);
         });

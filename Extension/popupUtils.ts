@@ -21,7 +21,7 @@ export function GetRelativeTime(isoString: string): string {
 }
 
 export function getFieldFromObject(obj: any, path: string[]): any {
-	let current = obj;
+	let current: any = obj;
 	for (const segment of path) {
 		if (!current || typeof current !== "object") return null;
 		current = current[segment];
@@ -36,15 +36,15 @@ export function ExtractJobField(responses: any[], path: string[]): string | null
 		if (!response || typeof response.data !== "string") continue;
 
 		try {
-			const parsed = JSON.parse(response.data);
-			const candidate = getFieldFromObject(parsed?.data, path);
+			const parsed: any = JSON.parse(response.data);
+			const candidate: any = getFieldFromObject(parsed?.data, path);
 			if (typeof candidate === "string" && candidate.trim().length > 0) {
 				return candidate;
 			}
 
 			if (parsed?.data && typeof parsed.data === "object") {
 				for (const value of Object.values(parsed.data)) {
-					const nested = getFieldFromObject(value, path);
+					const nested: any = getFieldFromObject(value, path);
 					if (typeof nested === "string" && nested.trim().length > 0) {
 						return nested;
 					}

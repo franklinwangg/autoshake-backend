@@ -30,6 +30,7 @@
     if (link) {
       const href = link.getAttribute("href") || "";
       const text = link.textContent || "";
+      ;
       console.log("[AutoShake] Link clicked:", {
         href,
         text,
@@ -45,7 +46,7 @@
           return;
         }
         const jobEntry = {
-          jobId,
+          jobId: jobId || "",
           href,
           text,
           clickTimestamp: (/* @__PURE__ */ new Date()).toISOString()

@@ -1,5 +1,5 @@
-﻿const currentURL = window.location.href;
-const currentDomain = window.location.hostname;
+﻿const currentURL: string = window.location.href;
+const currentDomain: string = window.location.hostname;
 
 const targetWebsite = "handshake.com";
 
@@ -7,16 +7,16 @@ if (currentDomain.includes(targetWebsite)){
 	console.log("[AutoShake] You are on " + targetWebsite + "!");
 
 	// Listen for GraphQL responses from injected script
-	window.addEventListener("message", (event) => {
+	window.addEventListener("message", (event: MessageEvent<any>) => {
 		if (event.data.type === "AUTOSHAKE_GRAPHQL_RESPONSE") {
-			const jobId = event.data.jobId;
-			const response = event.data.response;
+			const jobId: string = event.data.jobId;
+			const response: any = event.data.response;
 			
 			if (!jobId || !response) return;
 			
 			// Get existing jobData from storage
-			chrome.storage.local.get("jobData", (result) => {
-				const jobData = result.jobData || {};
+			chrome.storage.local.get("jobData", (result: any) => {
+				const jobData: any = result.jobData || {};
 				
 				// Initialize job entry if it doesn't exist
 				if (!jobData[jobId]) {
@@ -35,13 +35,13 @@ if (currentDomain.includes(targetWebsite)){
 }
 
 // Listen for clicks on all links
-document.addEventListener("click", (event) => {
+document.addEventListener("click", (event: MouseEvent) => {
 	const target: HTMLElement = event.target as HTMLElement;
 	const link: HTMLAnchorElement | null = target.closest("a");
 
 	if (link) {
 		const href: string = link.getAttribute("href") || "";
-		const text: string = link.textContent || "";
+		const text: string = link.textContent || "";;
 
 		console.log("[AutoShake] Link clicked:", {
 			href,
@@ -55,16 +55,16 @@ document.addEventListener("click", (event) => {
 			console.log("[AutoShake] Job listing link detected!", href);
 			
 			// Extract job ID from href like "/job-search/10995461?page=1"
-			const jobIdMatch = href.match(/\/job-search\/(\d+)/);
-			const jobId = jobIdMatch ? jobIdMatch[1] : null;
+			const jobIdMatch: RegExpMatchArray | null = href.match(/\/job-search\/(\d+)/);
+			const jobId: string | null = jobIdMatch ? jobIdMatch[1] : null;
 			
 			if (!jobId) {
 				console.warn("[AutoShake] Could not extract job ID from href:", href);
 				return;
 			}
 			
-			const jobEntry = {
-				jobId,
+			const jobEntry: { jobId: string; href: string; text: string; clickTimestamp: string } = {
+				jobId: jobId || "",
 				href,
 				text,
 				clickTimestamp: new Date().toISOString(),
@@ -72,13 +72,13 @@ document.addEventListener("click", (event) => {
 			
 			// Store in jobData indexed by jobId
 			if (chrome?.storage?.local) {
-				chrome.storage.local.get(["trackingEnabled", "jobData"], (result) => {
+				chrome.storage.local.get(["trackingEnabled", "jobData"], (result: any) => {
 					const enabled = result.trackingEnabled !== false; // default true
 					if (!enabled) {
 						console.log("[AutoShake] Tracking disabled; ignoring click for job ID:", jobId);
 						return;
 					}
-					const jobData = result.jobData || {};
+					const jobData: any = result.jobData || {};
 					
 					// Initialize or update job entry
 					if (!jobData[jobId]) {
@@ -97,7 +97,7 @@ document.addEventListener("click", (event) => {
 			}
 			//Fallback
 			else if (chrome?.runtime?.sendMessage) {
-				chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response) => {
+				chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response: any) => {
 					if (response?.success) {
 						console.log("[AutoShake] Job stored via background service worker", jobEntry);
 					} else {

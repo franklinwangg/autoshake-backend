@@ -1,12 +1,12 @@
-export const isObject = (value) => value !== null && typeof value === "object";
+export const isObject = (value: any): value is Record<string, any> => value !== null && typeof value === "object";
 
-export const normalizeId = (value) => {
+export const normalizeId = (value: any): string | null => {
   if (typeof value === "string" && /^\d+$/.test(value)) return value;
   if (typeof value === "number" && Number.isInteger(value)) return String(value);
   return null;
 };
 
-export const findJobIdInObject = (obj) => {
+export const findJobIdInObject = (obj: any): string | null => {
   if (!isObject(obj)) return null;
 
   if (obj.__typename === "Job" && obj.id) {
@@ -26,7 +26,7 @@ export const findJobIdInObject = (obj) => {
   }
 
   for (const key of Object.keys(obj)) {
-    const value = obj[key];
+    const value: any = obj[key];
 
     if (key === "jobId" || key === "job_id" || key === "jobID") {
       const normalized = normalizeId(value);
@@ -48,6 +48,14 @@ export const findJobIdInObject = (obj) => {
   return null;
 };
 
+declare global {
+  interface Window {
+    __AUTOSHAKE_INITIALIZED__?: boolean;
+    __AUTOSHAKE_GRAPHQL_RESPONSES__: any[];
+    __AUTOSHAKE_CLICKED_JOBS__: any[];
+  }
+}
+
 (() => {
   // Guard: don't re-initialize if already injected
   if (window.__AUTOSHAKE_INITIALIZED__) {
@@ -61,9 +69,9 @@ export const findJobIdInObject = (obj) => {
   window.__AUTOSHAKE_GRAPHQL_RESPONSES__ = [];
   window.__AUTOSHAKE_CLICKED_JOBS__ = [];
 
-  const origFetch = window.fetch;
+  const origFetch: typeof window.fetch = window.fetch;
 
-  const parseJSON = (text) => {
+  const parseJSON = (text: string): any | null => {
     try {
       return JSON.parse(text);
     } catch {
@@ -71,10 +79,10 @@ export const findJobIdInObject = (obj) => {
     }
   };
 
-  const extractJobIdFromRequest = (args) => {
+  const extractJobIdFromRequest = (args: IArguments | unknown[]): string | null => {
     try {
-      const requestInit = args[1] || {};
-      const body = requestInit.body;
+      const requestInit: any = (args as any)[1] || {};
+      const body: any = requestInit.body;
 
       if (typeof body === "string") {
         const parsedBody = parseJSON(body);
@@ -89,7 +97,7 @@ export const findJobIdInObject = (obj) => {
         if (candidate) return candidate;
       }
 
-      const url = typeof args[0] === "string" ? args[0] : args[0]?.url;
+      const url: string | undefined = typeof (args as any)[0] === "string" ? (args as any)[0] : (args as any)[0]?.url;
       if (typeof url === "string") {
         const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
         if (match) return match[1];
@@ -101,14 +109,14 @@ export const findJobIdInObject = (obj) => {
     return null;
   };
 
-  window.fetch = async (...args) => {
-    const res = await origFetch(...args);
-    const clone = res.clone();
+  window.fetch = async (...args: Parameters<typeof window.fetch>): Promise<Response> => {
+    const res: Response = await origFetch(...args);
+    const clone: Response = res.clone();
 
-    clone.json().then((data) => {
+    clone.json().then((data: any) => {
       if (data?.data || data?.errors) {
-        let jobId = findJobIdInObject(data?.data || data);
-        let source = "response";
+        let jobId: string | null = findJobIdInObject(data?.data || data);
+        let source: string = "response";
 
         if (!jobId) {
           jobId = extractJobIdFromRequest(args);
@@ -116,8 +124,8 @@ export const findJobIdInObject = (obj) => {
         }
 
         if (jobId) {
-          const graphqlResponse = {
-            url: args[0],
+          const graphqlResponse: { url: any; data: string; timestamp: string } = {
+            url: (args as any)[0],
             data: JSON.stringify(data),
             timestamp: new Date().toISOString(),
           };
@@ -138,7 +146,7 @@ export const findJobIdInObject = (obj) => {
     return res;
   };
 
-  window.addEventListener("message", (event) => {
+  window.addEventListener("message", (event: MessageEvent<any>) => {
     if (event.source !== window) return;
     if (event.data.type === "AUTOSHAKE_GET_DATA") {
       window.postMessage({
