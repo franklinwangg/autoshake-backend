@@ -1,6 +1,6 @@
-import type { StoreJobMessage, StorageResult, JobData } from './types';
+import type { StoreJobMessage, StorageResult, JobData, StoreJobResponse } from './types';
 
-chrome.runtime.onMessage.addListener((message: StoreJobMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: { success: boolean; error?: string }) => void) => {
+chrome.runtime.onMessage.addListener((message: StoreJobMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: StoreJobResponse) => void) => {
 	if (message?.type !== "storeJob" || !message.jobEntry) {
 		return false;
 	}

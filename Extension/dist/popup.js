@@ -1,25 +1,154 @@
 "use strict";
 (() => {
+  // inject.ts
+  var IsObject = (value) => value !== null && typeof value === "object";
+  var NormalizeId = (value) => {
+    if (typeof value === "string" && /^\d+$/.test(value)) return value;
+    if (typeof value === "number" && Number.isInteger(value)) return String(value);
+    return null;
+  };
+  var FindJobIdInObject = (obj) => {
+    if (!IsObject(obj)) return null;
+    if ("__typename" in obj && obj.__typename === "Job" && "id" in obj) {
+      return NormalizeId(obj.id);
+    }
+    if (IsObject(obj.job) && "id" in obj.job) {
+      return NormalizeId(obj.job.id);
+    }
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const found = FindJobIdInObject(item);
+        if (found) return found;
+      }
+      return null;
+    }
+    for (const key of Object.keys(obj)) {
+      const value = obj[key];
+      if (key === "jobId" || key === "job_id" || key === "jobID") {
+        const normalized = NormalizeId(value);
+        if (normalized) return normalized;
+      }
+      if (key === "variables" && IsObject(value)) {
+        const candidate = ("jobId" in value ? value.jobId : void 0) ?? ("id" in value ? value.id : void 0) ?? ("job_id" in value ? value.job_id : void 0) ?? ("jobID" in value ? value.jobID : void 0);
+        const normalized = NormalizeId(candidate);
+        if (normalized) return normalized;
+      }
+      if (IsObject(value) || Array.isArray(value)) {
+        const found = FindJobIdInObject(value);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  (() => {
+    if (window.__AUTOSHAKE_INITIALIZED__) {
+      console.log("[AutoShake] inject.js already running, skipping re-init");
+      return;
+    }
+    window.__AUTOSHAKE_INITIALIZED__ = true;
+    console.log("[AutoShake] inject.js initializing");
+    window.__AUTOSHAKE_GRAPHQL_RESPONSES__ = [];
+    window.__AUTOSHAKE_CLICKED_JOBS__ = [];
+    const origFetch = window.fetch;
+    const ParseJSON = (text) => {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    };
+    const ExtractJobIdFromRequest = (args) => {
+      try {
+        const requestInit = args[1];
+        const body = requestInit?.body;
+        if (typeof body === "string") {
+          const parsedBody = ParseJSON(body);
+          if (parsedBody) {
+            const candidate = FindJobIdInObject(parsedBody);
+            if (candidate) return candidate;
+          }
+        }
+        if (IsObject(body)) {
+          const candidate = FindJobIdInObject(body);
+          if (candidate) return candidate;
+        }
+        const firstArg = args[0];
+        const url = typeof firstArg === "string" ? firstArg : IsObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string" ? firstArg.url : void 0;
+        if (url) {
+          const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
+          if (match) return match[1] ?? null;
+        }
+      } catch (error) {
+        console.warn("[AutoShake] Error extracting job ID from request", error);
+      }
+      return null;
+    };
+    window.fetch = async (...args) => {
+      const res = await origFetch(...args);
+      const clone = res.clone();
+      clone.json().then((data) => {
+        if (IsObject(data) && ("data" in data || "errors" in data)) {
+          let jobId = FindJobIdInObject("data" in data ? data.data : data);
+          let source = "response";
+          if (!jobId) {
+            jobId = ExtractJobIdFromRequest(args);
+            source = "request";
+          }
+          if (jobId) {
+            const graphqlResponse = {
+              url: String(args[0]),
+              data: JSON.stringify(data),
+              timestamp: (/* @__PURE__ */ new Date()).toISOString()
+            };
+            window.postMessage({
+              type: "AUTOSHAKE_GRAPHQL_RESPONSE",
+              jobId,
+              response: graphqlResponse
+            }, "*");
+            console.log("[AutoShake] Intercepted GraphQL response for job ID:", jobId, "(source:", source, ")");
+          } else {
+            console.log("[AutoShake] GraphQL response has no detectable job ID, skipping");
+          }
+        }
+      }).catch(() => {
+      });
+      return res;
+    };
+    window.addEventListener("message", (event) => {
+      if (event.source !== window) return;
+      if (event.data.type === "AUTOSHAKE_GET_DATA") {
+        window.postMessage({
+          type: "AUTOSHAKE_DATA_RESPONSE",
+          graphqlResponses: window.__AUTOSHAKE_GRAPHQL_RESPONSES__,
+          clickedJobs: window.__AUTOSHAKE_CLICKED_JOBS__
+        }, "*");
+      }
+    });
+  })();
+
   // popupUtils.ts
+  var MS_PER_MINUTE = 6e4;
+  var MINUTES_PER_HOUR = 60;
+  var HOURS_PER_DAY = 24;
   function GetRelativeTime(isoString) {
     const now = /* @__PURE__ */ new Date();
     const past = new Date(isoString);
     const diffMs = now.getTime() - past.getTime();
-    const diffMins = Math.floor(diffMs / 6e4);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
+    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
+    const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
+    const diffDays = Math.floor(diffHours / HOURS_PER_DAY);
     if (diffMins < 1) {
       return "just now";
     }
-    if (diffMins < 60) {
+    if (diffMins < MINUTES_PER_HOUR) {
       return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
     }
-    if (diffHours < 24) {
+    if (diffHours < HOURS_PER_DAY) {
       return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
     }
     return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
-  function getFieldFromObject(obj, path) {
+  function GetFieldFromObject(obj, path) {
     let current = obj;
     for (const segment of path) {
       if (!current || typeof current !== "object") return null;
@@ -33,14 +162,14 @@
       if (!response || typeof response.data !== "string") continue;
       try {
         const parsed = JSON.parse(response.data);
-        if (isObject(parsed) && "data" in parsed) {
-          const candidate = getFieldFromObject(parsed.data, path);
+        if (IsObject(parsed) && "data" in parsed) {
+          const candidate = GetFieldFromObject(parsed.data, path);
           if (typeof candidate === "string" && candidate.trim().length > 0) {
             return candidate;
           }
-          if (isObject(parsed.data)) {
+          if (IsObject(parsed.data)) {
             for (const value of Object.values(parsed.data)) {
-              const nested = getFieldFromObject(value, path);
+              const nested = GetFieldFromObject(value, path);
               if (typeof nested === "string" && nested.trim().length > 0) {
                 return nested;
               }
@@ -53,7 +182,6 @@
     }
     return null;
   }
-  var isObject = (value) => value !== null && typeof value === "object";
 
   // popup.ts
   var toggle = null;
@@ -61,7 +189,7 @@
   var jobList = null;
   var graphqlToggleButton = null;
   var graphqlStats = null;
-  function initializePopupDOMElements() {
+  function InitializePopupDOMElements() {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
@@ -81,8 +209,8 @@
       container.innerHTML = "";
       responses.slice().reverse().forEach((r, i) => {
         const parsed = JSON.parse(r.data);
-        const parsedData = isObject2(parsed) ? parsed : null;
-        const inner = parsedData && "data" in parsedData && isObject2(parsedData.data) ? parsedData.data : null;
+        const parsedData = IsObject(parsed) ? parsed : null;
+        const inner = parsedData && "data" in parsedData && IsObject(parsedData.data) ? parsedData.data : null;
         const operationName = inner ? Object.keys(inner).join(", ") || "unknown" : parsedData ? Object.keys(parsedData)[0] ?? "unknown" : "unknown";
         const item = document.createElement("div");
         item.className = "graphql-item";
@@ -106,7 +234,6 @@
       });
     });
   }
-  var isObject2 = (value) => value !== null && typeof value === "object";
   function DeleteJob(jobId) {
     chrome.storage.local.get("jobData", (result) => {
       const jobData = result.jobData || {};
@@ -167,7 +294,7 @@
     });
   }
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
-    initializePopupDOMElements();
+    InitializePopupDOMElements();
     if (toggle && stateText && jobList) {
       const toggleEl = toggle;
       const graphqlBtn = graphqlToggleButton;

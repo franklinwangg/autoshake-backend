@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findJobIdInObject, normalizeId, isObject } from '../inject';
+import { FindJobIdInObject, NormalizeId, IsObject } from '../inject';
 
 const sampleJobGraphQL: { data: { job: { id: string; __typename: string } } } = {
   data: {
@@ -10,168 +10,168 @@ const sampleJobGraphQL: { data: { job: { id: string; __typename: string } } } = 
   },
 };
 
-describe('findJobIdInObject_givenSampleGraphQL_returnsId', () => {
+describe('FindJobIdInObject_givenSampleGraphQL_returnsId', () => {
   it('returns 11054220 for the sample GraphQL payload', () => {
-    expect(findJobIdInObject(sampleJobGraphQL.data)).toBe('11054220');
+    expect(FindJobIdInObject(sampleJobGraphQL.data)).toBe('11054220');
   });
 });
 
-// ============ normalizeId Tests ============
-describe('normalizeId_givenValidNumericString_returnsString', () => {
+// ============ NormalizeId Tests ============
+describe('NormalizeId_givenValidNumericString_returnsString', () => {
   it('returns the numeric string as-is', () => {
-    expect(normalizeId('12345')).toBe('12345');
+    expect(NormalizeId('12345')).toBe('12345');
   });
 });
 
-describe('normalizeId_givenValidNumber_returnsStringNumber', () => {
+describe('NormalizeId_givenValidNumber_returnsStringNumber', () => {
   it('converts integer to string', () => {
-    expect(normalizeId(12345)).toBe('12345');
+    expect(NormalizeId(12345)).toBe('12345');
   });
 });
 
-describe('normalizeId_givenNullInput_returnsNull', () => {
+describe('NormalizeId_givenNullInput_returnsNull', () => {
   it('returns null for null', () => {
-    expect(normalizeId(null)).toBeNull();
+    expect(NormalizeId(null)).toBeNull();
   });
 });
 
-describe('normalizeId_givenUndefinedInput_returnsNull', () => {
+describe('NormalizeId_givenUndefinedInput_returnsNull', () => {
   it('returns null for undefined', () => {
-    expect(normalizeId(undefined)).toBeNull();
+    expect(NormalizeId(undefined)).toBeNull();
   });
 });
 
-describe('normalizeId_givenNonNumericString_returnsNull', () => {
+describe('NormalizeId_givenNonNumericString_returnsNull', () => {
   it('returns null for strings with letters', () => {
-    expect(normalizeId('abc123')).toBeNull();
+    expect(NormalizeId('abc123')).toBeNull();
   });
 
   it('returns null for empty string', () => {
-    expect(normalizeId('')).toBeNull();
+    expect(NormalizeId('')).toBeNull();
   });
 });
 
-describe('normalizeId_givenFloatingPointNumber_returnsNull', () => {
+describe('NormalizeId_givenFloatingPointNumber_returnsNull', () => {
   it('returns null for decimal numbers', () => {
-    expect(normalizeId(123.45)).toBeNull();
+    expect(NormalizeId(123.45)).toBeNull();
   });
 });
 
-describe('normalizeId_givenObjectOrArray_returnsNull', () => {
+describe('NormalizeId_givenObjectOrArray_returnsNull', () => {
   it('returns null for objects', () => {
-    expect(normalizeId({})).toBeNull();
+    expect(NormalizeId({})).toBeNull();
   });
 
   it('returns null for arrays', () => {
-    expect(normalizeId([])).toBeNull();
+    expect(NormalizeId([])).toBeNull();
   });
 });
 
-// ============ isObject Tests ============
-describe('isObject_givenValidObject_returnsTrue', () => {
+// ============ IsObject Tests ============
+describe('IsObject_givenValidObject_returnsTrue', () => {
   it('returns true for plain objects', () => {
-    expect(isObject({})).toBe(true);
+    expect(IsObject({})).toBe(true);
   });
 
   it('returns true for objects with properties', () => {
-    expect(isObject({ a: 1 })).toBe(true);
+    expect(IsObject({ a: 1 })).toBe(true);
   });
 
   it('returns true for arrays', () => {
-    expect(isObject([])).toBe(true);
+    expect(IsObject([])).toBe(true);
   });
 });
 
-describe('isObject_givenNullInput_returnsFalse', () => {
+describe('IsObject_givenNullInput_returnsFalse', () => {
   it('returns false for null', () => {
-    expect(isObject(null)).toBe(false);
+    expect(IsObject(null)).toBe(false);
   });
 });
 
-describe('isObject_givenPrimitiveValues_returnsFalse', () => {
+describe('IsObject_givenPrimitiveValues_returnsFalse', () => {
   it('returns false for strings', () => {
-    expect(isObject('string')).toBe(false);
+    expect(IsObject('string')).toBe(false);
   });
 
   it('returns false for numbers', () => {
-    expect(isObject(123)).toBe(false);
+    expect(IsObject(123)).toBe(false);
   });
 
   it('returns false for booleans', () => {
-    expect(isObject(true)).toBe(false);
+    expect(IsObject(true)).toBe(false);
   });
 
   it('returns false for undefined', () => {
-    expect(isObject(undefined)).toBe(false);
+    expect(IsObject(undefined)).toBe(false);
   });
 });
 
-// ============ findJobIdInObject Tests ============
-describe('findJobIdInObject_givenNullInput_returnsNull', () => {
+// ============ FindJobIdInObject Tests ============
+describe('FindJobIdInObject_givenNullInput_returnsNull', () => {
   it('returns null for null', () => {
-    expect(findJobIdInObject(null)).toBeNull();
+    expect(FindJobIdInObject(null)).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenUndefinedInput_returnsNull', () => {
+describe('FindJobIdInObject_givenUndefinedInput_returnsNull', () => {
   it('returns null for undefined', () => {
-    expect(findJobIdInObject(undefined)).toBeNull();
+    expect(FindJobIdInObject(undefined)).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenPrimitiveValue_returnsNull', () => {
+describe('FindJobIdInObject_givenPrimitiveValue_returnsNull', () => {
   it('returns null for string', () => {
-    expect(findJobIdInObject('not an object')).toBeNull();
+    expect(FindJobIdInObject('not an object')).toBeNull();
   });
 
   it('returns null for number', () => {
-    expect(findJobIdInObject(123)).toBeNull();
+    expect(FindJobIdInObject(123)).toBeNull();
   });
 
   it('returns null for boolean', () => {
-    expect(findJobIdInObject(true)).toBeNull();
+    expect(FindJobIdInObject(true)).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenEmptyObject_returnsNull', () => {
+describe('FindJobIdInObject_givenEmptyObject_returnsNull', () => {
   it('returns null for empty object', () => {
-    expect(findJobIdInObject({})).toBeNull();
+    expect(FindJobIdInObject({})).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenEmptyArray_returnsNull', () => {
+describe('FindJobIdInObject_givenEmptyArray_returnsNull', () => {
   it('returns null for empty array', () => {
-    expect(findJobIdInObject([])).toBeNull();
+    expect(FindJobIdInObject([])).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenObjectWithoutJobId_returnsNull', () => {
+describe('FindJobIdInObject_givenObjectWithoutJobId_returnsNull', () => {
   it('returns null when no ID fields present', () => {
-    expect(findJobIdInObject({ name: 'John', title: 'Engineer' })).toBeNull();
+    expect(FindJobIdInObject({ name: 'John', title: 'Engineer' })).toBeNull();
   });
 
   it('returns null when job object has no ID', () => {
-    expect(findJobIdInObject({ job: { title: 'Engineer' } })).toBeNull();
+    expect(FindJobIdInObject({ job: { title: 'Engineer' } })).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenInvalidIdValue_returnsNull', () => {
+describe('FindJobIdInObject_givenInvalidIdValue_returnsNull', () => {
   it('returns null for non-numeric string ID', () => {
-    expect(findJobIdInObject({ jobId: 'not-a-number' })).toBeNull();
+    expect(FindJobIdInObject({ jobId: 'not-a-number' })).toBeNull();
   });
 
   it('returns null for null ID', () => {
-    expect(findJobIdInObject({ jobId: null })).toBeNull();
+    expect(FindJobIdInObject({ jobId: null })).toBeNull();
   });
 
   it('returns null for undefined ID', () => {
-    expect(findJobIdInObject({ jobId: undefined })).toBeNull();
+    expect(FindJobIdInObject({ jobId: undefined })).toBeNull();
   });
 });
 
-describe('findJobIdInObject_givenArrayOfInvalidObjects_returnsNull', () => {
+describe('FindJobIdInObject_givenArrayOfInvalidObjects_returnsNull', () => {
   it('returns null when array contains no valid job IDs', () => {
-    expect(findJobIdInObject([
+    expect(FindJobIdInObject([
       { name: 'Job 1' },
       { title: 'Engineer' },
       { id: 'not-numeric' },

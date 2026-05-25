@@ -34,6 +34,11 @@ export interface StoreJobMessage {
 	jobEntry: JobEntry;
 }
 
+export interface StoreJobResponse {
+	success: boolean;
+	error?: string;
+}
+
 export interface AutoshakeGraphqlMessage {
 	type: "AUTOSHAKE_GRAPHQL_RESPONSE";
 	jobId: string;

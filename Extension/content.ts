@@ -1,12 +1,12 @@
-import type { JobEntry, StorageResult, JobData, AutoshakeGraphqlMessage, GraphqlResponse } from './types';
+import type { JobEntry, StorageResult, JobData, AutoshakeGraphqlMessage, GraphqlResponse, StoreJobResponse } from './types';
 
-const currentURL: string = window.location.href;
-const currentDomain: string = window.location.hostname;
+const CURRENT_URL: string = window.location.href;
+const CURRENT_DOMAIN: string = window.location.hostname;
 
-const targetWebsite = "handshake.com";
+const TARGET_WEBSITE = "handshake.com";
 
-if (currentDomain.includes(targetWebsite)){
-	console.log("[AutoShake] You are on " + targetWebsite + "!");
+if (CURRENT_DOMAIN.includes(TARGET_WEBSITE)){
+	console.log("[AutoShake] You are on " + TARGET_WEBSITE + "!");
 
 	window.addEventListener("message", (event: MessageEvent<AutoshakeGraphqlMessage>) => {
 		if (event.data.type === "AUTOSHAKE_GRAPHQL_RESPONSE") {
@@ -87,10 +87,8 @@ document.addEventListener("click", (event: MouseEvent) => {
 					});
 				});
 			}
-
-			// Fallback
 			else if (chrome?.runtime?.sendMessage) {
-				chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response?: { success: boolean; error?: string }) => {
+				chrome.runtime.sendMessage({ type: "storeJob", jobEntry }, (response?: StoreJobResponse) => {
 					if (response?.success) {
 						console.log("[AutoShake] Job stored via background service worker", jobEntry);
 					} else {

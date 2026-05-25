@@ -1,5 +1,10 @@
 import type { JobRecord, JobData, StorageResult, GraphqlResponse } from './types';
-import { GetRelativeTime, getFieldFromObject, ExtractJobField } from './popupUtils';
+import { GetRelativeTime, GetFieldFromObject, ExtractJobField } from './popupUtils';
+import { IsObject } from './inject';
+
+interface ParsedGraphQLData {
+	[key: string]: unknown;
+}
 
 let toggle: HTMLInputElement | null = null;
 let stateText: HTMLElement | null = null;
@@ -7,16 +12,12 @@ let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let graphqlStats: HTMLElement | null = null;
 
-function initializePopupDOMElements() {
+function InitializePopupDOMElements() {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
 	graphqlToggleButton = document.getElementById("toggleGraphQL");
 	graphqlStats = document.getElementById("graphqlStats");
-}
-
-interface ParsedGraphQLData {
-	[key: string]: unknown;
 }
 
 function DisplayGraphQLResponses(): void {
@@ -37,8 +38,8 @@ function DisplayGraphQLResponses(): void {
 
     responses.slice().reverse().forEach((r: GraphqlResponse, i: number) => {
       const parsed: unknown = JSON.parse(r.data);
-      const parsedData: ParsedGraphQLData | null = isObject(parsed) ? parsed as ParsedGraphQLData : null;
-      const inner: unknown = parsedData && "data" in parsedData && isObject(parsedData.data) ? parsedData.data : null;
+      const parsedData: ParsedGraphQLData | null = IsObject(parsed) ? parsed as ParsedGraphQLData : null;
+      const inner: unknown = parsedData && "data" in parsedData && IsObject(parsedData.data) ? parsedData.data : null;
       const operationName: string = inner
         ? Object.keys(inner).join(", ") || "unknown"
         : parsedData
@@ -69,9 +70,6 @@ function DisplayGraphQLResponses(): void {
     });
   });
 }
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-	value !== null && typeof value === "object";
 
 function DeleteJob(jobId: string): void {
 	chrome.storage.local.get("jobData", (result: StorageResult) => {
@@ -145,7 +143,7 @@ function DisplayJobs(): void {
 }
 
 if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof (globalThis as Record<string, unknown>).vi === "undefined") {
-	initializePopupDOMElements();
+	InitializePopupDOMElements();
 
 	if (toggle && stateText && jobList) {
 		const toggleEl: HTMLInputElement = toggle;

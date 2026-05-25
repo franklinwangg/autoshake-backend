@@ -2,28 +2,28 @@ import type { GraphqlResponse } from './types';
 
 type UnknownRecord = Record<string, unknown>;
 
-export const isObject = (value: unknown): value is UnknownRecord => value !== null && typeof value === "object";
+export const IsObject = (value: unknown): value is UnknownRecord => value !== null && typeof value === "object";
 
-export const normalizeId = (value: unknown): string | null => {
+export const NormalizeId = (value: unknown): string | null => {
   if (typeof value === "string" && /^\d+$/.test(value)) return value;
   if (typeof value === "number" && Number.isInteger(value)) return String(value);
   return null;
 };
 
-export const findJobIdInObject = (obj: unknown): string | null => {
-  if (!isObject(obj)) return null;
+export const FindJobIdInObject = (obj: unknown): string | null => {
+  if (!IsObject(obj)) return null;
 
   if ("__typename" in obj && obj.__typename === "Job" && "id" in obj) {
-    return normalizeId(obj.id);
+    return NormalizeId(obj.id);
   }
 
-  if (isObject(obj.job) && "id" in obj.job) {
-    return normalizeId(obj.job.id);
+  if (IsObject(obj.job) && "id" in obj.job) {
+    return NormalizeId(obj.job.id);
   }
 
   if (Array.isArray(obj)) {
     for (const item of obj) {
-      const found = findJobIdInObject(item);
+      const found = FindJobIdInObject(item);
       if (found) return found;
     }
     return null;
@@ -33,21 +33,21 @@ export const findJobIdInObject = (obj: unknown): string | null => {
     const value: unknown = obj[key];
 
     if (key === "jobId" || key === "job_id" || key === "jobID") {
-      const normalized = normalizeId(value);
+      const normalized = NormalizeId(value);
       if (normalized) return normalized;
     }
 
-    if (key === "variables" && isObject(value)) {
+    if (key === "variables" && IsObject(value)) {
       const candidate: unknown = ("jobId" in value ? value.jobId : undefined)
         ?? ("id" in value ? value.id : undefined)
         ?? ("job_id" in value ? value.job_id : undefined)
         ?? ("jobID" in value ? value.jobID : undefined);
-      const normalized = normalizeId(candidate);
+      const normalized = NormalizeId(candidate);
       if (normalized) return normalized;
     }
 
-    if (isObject(value) || Array.isArray(value)) {
-      const found = findJobIdInObject(value);
+    if (IsObject(value) || Array.isArray(value)) {
+      const found = FindJobIdInObject(value);
       if (found) return found;
     }
   }
@@ -77,7 +77,7 @@ declare global {
 
   const origFetch: typeof window.fetch = window.fetch;
 
-  const parseJSON = (text: string): unknown => {
+  const ParseJSON = (text: string): unknown => {
     try {
       return JSON.parse(text);
     } catch {
@@ -85,28 +85,28 @@ declare global {
     }
   };
 
-  const extractJobIdFromRequest = (args: IArguments | unknown[]): string | null => {
+  const ExtractJobIdFromRequest = (args: IArguments | unknown[]): string | null => {
     try {
       const requestInit: Record<string, unknown> | undefined = (args as unknown[])[1] as Record<string, unknown> | undefined;
       const body: unknown = requestInit?.body;
 
       if (typeof body === "string") {
-        const parsedBody: unknown = parseJSON(body);
+        const parsedBody: unknown = ParseJSON(body);
         if (parsedBody) {
-          const candidate = findJobIdInObject(parsedBody);
+          const candidate = FindJobIdInObject(parsedBody);
           if (candidate) return candidate;
         }
       }
 
-      if (isObject(body)) {
-        const candidate = findJobIdInObject(body);
+      if (IsObject(body)) {
+        const candidate = FindJobIdInObject(body);
         if (candidate) return candidate;
       }
 
       const firstArg: unknown = (args as unknown[])[0];
       const url: string | undefined = typeof firstArg === "string"
         ? firstArg
-        : isObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string"
+        : IsObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string"
           ? firstArg.url
           : undefined;
       if (url) {
@@ -125,12 +125,12 @@ declare global {
     const clone: Response = res.clone();
 
     clone.json().then((data: unknown): void => {
-      if (isObject(data) && ("data" in data || "errors" in data)) {
-        let jobId: string | null = findJobIdInObject("data" in data ? data.data : data);
+      if (IsObject(data) && ("data" in data || "errors" in data)) {
+        let jobId: string | null = FindJobIdInObject("data" in data ? data.data : data);
         let source: string = "response";
 
         if (!jobId) {
-          jobId = extractJobIdFromRequest(args);
+          jobId = ExtractJobIdFromRequest(args);
           source = "request";
         }
 
