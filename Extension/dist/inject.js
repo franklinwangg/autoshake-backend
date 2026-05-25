@@ -9,10 +9,10 @@
   };
   var findJobIdInObject = (obj) => {
     if (!isObject(obj)) return null;
-    if (obj.__typename === "Job" && obj.id) {
+    if ("__typename" in obj && obj.__typename === "Job" && "id" in obj) {
       return normalizeId(obj.id);
     }
-    if (isObject(obj.job) && obj.job.id) {
+    if (isObject(obj.job) && "id" in obj.job) {
       return normalizeId(obj.job.id);
     }
     if (Array.isArray(obj)) {
@@ -29,7 +29,7 @@
         if (normalized) return normalized;
       }
       if (key === "variables" && isObject(value)) {
-        const candidate = value.jobId || value.id || value.job_id || value.jobID;
+        const candidate = ("jobId" in value ? value.jobId : void 0) ?? ("id" in value ? value.id : void 0) ?? ("job_id" in value ? value.job_id : void 0) ?? ("jobID" in value ? value.jobID : void 0);
         const normalized = normalizeId(candidate);
         if (normalized) return normalized;
       }
@@ -59,8 +59,8 @@
     };
     const extractJobIdFromRequest = (args) => {
       try {
-        const requestInit = args[1] || {};
-        const body = requestInit.body;
+        const requestInit = args[1];
+        const body = requestInit?.body;
         if (typeof body === "string") {
           const parsedBody = parseJSON(body);
           if (parsedBody) {
@@ -72,10 +72,11 @@
           const candidate = findJobIdInObject(body);
           if (candidate) return candidate;
         }
-        const url = typeof args[0] === "string" ? args[0] : args[0]?.url;
-        if (typeof url === "string") {
+        const firstArg = args[0];
+        const url = typeof firstArg === "string" ? firstArg : isObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string" ? firstArg.url : void 0;
+        if (url) {
           const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
-          if (match) return match[1];
+          if (match) return match[1] ?? null;
         }
       } catch (error) {
         console.warn("[AutoShake] Error extracting job ID from request", error);
@@ -86,8 +87,8 @@
       const res = await origFetch(...args);
       const clone = res.clone();
       clone.json().then((data) => {
-        if (data?.data || data?.errors) {
-          let jobId = findJobIdInObject(data?.data || data);
+        if (isObject(data) && ("data" in data || "errors" in data)) {
+          let jobId = findJobIdInObject("data" in data ? data.data : data);
           let source = "response";
           if (!jobId) {
             jobId = extractJobIdFromRequest(args);
@@ -95,7 +96,7 @@
           }
           if (jobId) {
             const graphqlResponse = {
-              url: args[0],
+              url: String(args[0]),
               data: JSON.stringify(data),
               timestamp: (/* @__PURE__ */ new Date()).toISOString()
             };

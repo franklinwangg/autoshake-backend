@@ -1,19 +1,23 @@
-export const isObject = (value: any): value is Record<string, any> => value !== null && typeof value === "object";
+import type { GraphqlResponse } from './types';
 
-export const normalizeId = (value: any): string | null => {
+type UnknownRecord = Record<string, unknown>;
+
+export const isObject = (value: unknown): value is UnknownRecord => value !== null && typeof value === "object";
+
+export const normalizeId = (value: unknown): string | null => {
   if (typeof value === "string" && /^\d+$/.test(value)) return value;
   if (typeof value === "number" && Number.isInteger(value)) return String(value);
   return null;
 };
 
-export const findJobIdInObject = (obj: any): string | null => {
+export const findJobIdInObject = (obj: unknown): string | null => {
   if (!isObject(obj)) return null;
 
-  if (obj.__typename === "Job" && obj.id) {
+  if ("__typename" in obj && obj.__typename === "Job" && "id" in obj) {
     return normalizeId(obj.id);
   }
 
-  if (isObject(obj.job) && obj.job.id) {
+  if (isObject(obj.job) && "id" in obj.job) {
     return normalizeId(obj.job.id);
   }
 
@@ -26,7 +30,7 @@ export const findJobIdInObject = (obj: any): string | null => {
   }
 
   for (const key of Object.keys(obj)) {
-    const value: any = obj[key];
+    const value: unknown = obj[key];
 
     if (key === "jobId" || key === "job_id" || key === "jobID") {
       const normalized = normalizeId(value);
@@ -34,7 +38,10 @@ export const findJobIdInObject = (obj: any): string | null => {
     }
 
     if (key === "variables" && isObject(value)) {
-      const candidate = value.jobId || value.id || value.job_id || value.jobID;
+      const candidate: unknown = ("jobId" in value ? value.jobId : undefined)
+        ?? ("id" in value ? value.id : undefined)
+        ?? ("job_id" in value ? value.job_id : undefined)
+        ?? ("jobID" in value ? value.jobID : undefined);
       const normalized = normalizeId(candidate);
       if (normalized) return normalized;
     }
@@ -50,14 +57,13 @@ export const findJobIdInObject = (obj: any): string | null => {
 
 declare global {
   interface Window {
-    __AUTOSHAKE_INITIALIZED__?: boolean;
-    __AUTOSHAKE_GRAPHQL_RESPONSES__: any[];
-    __AUTOSHAKE_CLICKED_JOBS__: any[];
+    __AUTOSHAKE_INITIALIZED__: boolean;
+    __AUTOSHAKE_GRAPHQL_RESPONSES__: unknown[];
+    __AUTOSHAKE_CLICKED_JOBS__: unknown[];
   }
 }
 
 (() => {
-  // Guard: don't re-initialize if already injected
   if (window.__AUTOSHAKE_INITIALIZED__) {
     console.log("[AutoShake] inject.js already running, skipping re-init");
     return;
@@ -71,7 +77,7 @@ declare global {
 
   const origFetch: typeof window.fetch = window.fetch;
 
-  const parseJSON = (text: string): any | null => {
+  const parseJSON = (text: string): unknown => {
     try {
       return JSON.parse(text);
     } catch {
@@ -81,11 +87,11 @@ declare global {
 
   const extractJobIdFromRequest = (args: IArguments | unknown[]): string | null => {
     try {
-      const requestInit: any = (args as any)[1] || {};
-      const body: any = requestInit.body;
+      const requestInit: Record<string, unknown> | undefined = (args as unknown[])[1] as Record<string, unknown> | undefined;
+      const body: unknown = requestInit?.body;
 
       if (typeof body === "string") {
-        const parsedBody = parseJSON(body);
+        const parsedBody: unknown = parseJSON(body);
         if (parsedBody) {
           const candidate = findJobIdInObject(parsedBody);
           if (candidate) return candidate;
@@ -97,12 +103,17 @@ declare global {
         if (candidate) return candidate;
       }
 
-      const url: string | undefined = typeof (args as any)[0] === "string" ? (args as any)[0] : (args as any)[0]?.url;
-      if (typeof url === "string") {
+      const firstArg: unknown = (args as unknown[])[0];
+      const url: string | undefined = typeof firstArg === "string"
+        ? firstArg
+        : isObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string"
+          ? firstArg.url
+          : undefined;
+      if (url) {
         const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
-        if (match) return match[1];
+        if (match) return match[1] ?? null;
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.warn("[AutoShake] Error extracting job ID from request", error);
     }
 
@@ -113,9 +124,9 @@ declare global {
     const res: Response = await origFetch(...args);
     const clone: Response = res.clone();
 
-    clone.json().then((data: any) => {
-      if (data?.data || data?.errors) {
-        let jobId: string | null = findJobIdInObject(data?.data || data);
+    clone.json().then((data: unknown): void => {
+      if (isObject(data) && ("data" in data || "errors" in data)) {
+        let jobId: string | null = findJobIdInObject("data" in data ? data.data : data);
         let source: string = "response";
 
         if (!jobId) {
@@ -124,8 +135,8 @@ declare global {
         }
 
         if (jobId) {
-          const graphqlResponse: { url: any; data: string; timestamp: string } = {
-            url: (args as any)[0],
+          const graphqlResponse: GraphqlResponse = {
+            url: String((args as unknown[])[0]),
             data: JSON.stringify(data),
             timestamp: new Date().toISOString(),
           };
@@ -146,7 +157,7 @@ declare global {
     return res;
   };
 
-  window.addEventListener("message", (event: MessageEvent<any>) => {
+  window.addEventListener("message", (event: MessageEvent) => {
     if (event.source !== window) return;
     if (event.data.type === "AUTOSHAKE_GET_DATA") {
       window.postMessage({

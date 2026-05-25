@@ -30,7 +30,6 @@
     if (link) {
       const href = link.getAttribute("href") || "";
       const text = link.textContent || "";
-      ;
       console.log("[AutoShake] Link clicked:", {
         href,
         text,
@@ -40,13 +39,13 @@
       if (href.includes("/job-search/") && href.includes("page")) {
         console.log("[AutoShake] Job listing link detected!", href);
         const jobIdMatch = href.match(/\/job-search\/(\d+)/);
-        const jobId = jobIdMatch ? jobIdMatch[1] : null;
+        const jobId = jobIdMatch?.[1] ?? null;
         if (!jobId) {
           console.warn("[AutoShake] Could not extract job ID from href:", href);
           return;
         }
         const jobEntry = {
-          jobId: jobId || "",
+          jobId,
           href,
           text,
           clickTimestamp: (/* @__PURE__ */ new Date()).toISOString()

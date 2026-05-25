@@ -33,15 +33,17 @@
       if (!response || typeof response.data !== "string") continue;
       try {
         const parsed = JSON.parse(response.data);
-        const candidate = getFieldFromObject(parsed?.data, path);
-        if (typeof candidate === "string" && candidate.trim().length > 0) {
-          return candidate;
-        }
-        if (parsed?.data && typeof parsed.data === "object") {
-          for (const value of Object.values(parsed.data)) {
-            const nested = getFieldFromObject(value, path);
-            if (typeof nested === "string" && nested.trim().length > 0) {
-              return nested;
+        if (isObject(parsed) && "data" in parsed) {
+          const candidate = getFieldFromObject(parsed.data, path);
+          if (typeof candidate === "string" && candidate.trim().length > 0) {
+            return candidate;
+          }
+          if (isObject(parsed.data)) {
+            for (const value of Object.values(parsed.data)) {
+              const nested = getFieldFromObject(value, path);
+              if (typeof nested === "string" && nested.trim().length > 0) {
+                return nested;
+              }
             }
           }
         }
@@ -51,6 +53,7 @@
     }
     return null;
   }
+  var isObject = (value) => value !== null && typeof value === "object";
 
   // popup.ts
   var toggle = null;
@@ -78,7 +81,9 @@
       container.innerHTML = "";
       responses.slice().reverse().forEach((r, i) => {
         const parsed = JSON.parse(r.data);
-        const operationName = parsed?.data ? Object.keys(parsed.data)[0] ?? "unknown" : "unknown";
+        const parsedData = isObject2(parsed) ? parsed : null;
+        const inner = parsedData && "data" in parsedData && isObject2(parsedData.data) ? parsedData.data : null;
+        const operationName = inner ? Object.keys(inner).join(", ") || "unknown" : parsedData ? Object.keys(parsedData)[0] ?? "unknown" : "unknown";
         const item = document.createElement("div");
         item.className = "graphql-item";
         item.innerHTML = `
@@ -92,15 +97,16 @@
         const headerElement = item.querySelector(".graphql-header");
         headerElement?.addEventListener("click", () => {
           const body = document.getElementById(`body-${i}`);
-          const toggle2 = item.querySelector(".graphql-toggle");
+          const toggleIcon = item.querySelector(".graphql-toggle");
           const isHidden = body?.style.display === "none";
-          body.style.display = isHidden ? "block" : "none";
-          toggle2.textContent = isHidden ? "\u25BC" : "\u25B6";
+          if (body) body.style.display = isHidden ? "block" : "none";
+          if (toggleIcon) toggleIcon.textContent = isHidden ? "\u25BC" : "\u25B6";
         });
         container.appendChild(item);
       });
     });
   }
+  var isObject2 = (value) => value !== null && typeof value === "object";
   function DeleteJob(jobId) {
     chrome.storage.local.get("jobData", (result) => {
       const jobData = result.jobData || {};
@@ -118,14 +124,15 @@
   }
   function DisplayJobs() {
     if (!jobList) return;
+    const listEl = jobList;
     chrome.storage.local.get("jobData", (result) => {
       const jobData = result.jobData || {};
       const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length === 0) {
-        jobList.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
+        listEl.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
         return;
       }
-      jobList.innerHTML = `<h2>Job List (${jobs.length})</h2>`;
+      listEl.innerHTML = `<h2>Job List (${jobs.length})</h2>`;
       const container = document.createElement("div");
       container.className = "jobs-container";
       for (const job of jobs) {
@@ -142,9 +149,9 @@
 			`;
         jobItem.addEventListener("click", (e) => {
           if (e.target.classList.contains("delete-button")) return;
-          let fullUrl = job.href;
-          if (!job.href.startsWith("http")) {
-            fullUrl = "https://app.joinhandshake.com" + (job.href.startsWith("/") ? "" : "/") + job.href;
+          let fullUrl = job.href ?? "";
+          if (!fullUrl.startsWith("http")) {
+            fullUrl = "https://app.joinhandshake.com" + (fullUrl.startsWith("/") ? "" : "/") + fullUrl;
           }
           chrome.tabs.create({ url: fullUrl });
         });
@@ -156,35 +163,33 @@
         container.appendChild(jobItem);
       }
       ;
-      jobList.appendChild(container);
+      listEl.appendChild(container);
     });
   }
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
     initializePopupDOMElements();
     if (toggle && stateText && jobList) {
+      const toggleEl = toggle;
+      const graphqlBtn = graphqlToggleButton;
       chrome.storage.local.get(["trackingEnabled"], (result) => {
         const enabled = result.trackingEnabled !== false;
-        if (toggle) {
-          toggle.checked = enabled;
-        }
+        toggleEl.checked = enabled;
         UpdateToggleLabel(enabled);
-        if (toggle) {
-          toggle.addEventListener("change", () => {
-            const isOn = !!toggle.checked;
-            chrome.storage.local.set({ trackingEnabled: isOn }, () => {
-              UpdateToggleLabel(isOn);
-            });
+        toggleEl.addEventListener("change", () => {
+          const isOn = toggleEl.checked;
+          chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+            UpdateToggleLabel(isOn);
           });
-        }
+        });
       });
       DisplayJobs();
       DisplayGraphQLResponses();
-      graphqlToggleButton?.addEventListener("click", () => {
+      graphqlBtn.addEventListener("click", () => {
         const container = document.getElementById("graphqlResponses");
         if (!container) return;
         const isHidden = container.style.display === "none";
         container.style.display = isHidden ? "block" : "none";
-        graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
+        graphqlBtn.textContent = isHidden ? "Hide" : "Show";
       });
     }
   }

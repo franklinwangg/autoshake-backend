@@ -1,34 +1,6 @@
-// This script is a fallback for content.ts to store the job info in case it errors
+import type { StoreJobMessage, StorageResult, JobData } from './types';
 
-interface JobEntry {
-	jobId: string;
-	href: string;
-	text: string;
-	clickTimestamp: string;
-}
-
-interface MessageData {
-	type: string;
-	jobEntry?: JobEntry;
-}
-
-interface JobData {
-	[jobId: string]: {
-		jobId: string;
-		graphqlResponses: any[];
-		clicked: boolean;
-		href?: string;
-		text?: string;
-		clickTimestamp?: string;
-	};
-}
-
-interface StorageResult {
-	trackingEnabled?: boolean;
-	jobData?: JobData;
-}
-
-chrome.runtime.onMessage.addListener((message: MessageData, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+chrome.runtime.onMessage.addListener((message: StoreJobMessage, _sender: chrome.runtime.MessageSender, sendResponse: (response?: { success: boolean; error?: string }) => void) => {
 	if (message?.type !== "storeJob" || !message.jobEntry) {
 		return false;
 	}
@@ -40,7 +12,7 @@ chrome.runtime.onMessage.addListener((message: MessageData, sender: chrome.runti
 	}
 
 	chrome.storage.local.get(["trackingEnabled", "jobData"], (result: StorageResult) => {
-		const enabled: boolean = result.trackingEnabled !== false; // default true
+		const enabled: boolean = result.trackingEnabled !== false;
 		if (!enabled) {
 			sendResponse({ success: false, error: "tracking_disabled" });
 			return true;

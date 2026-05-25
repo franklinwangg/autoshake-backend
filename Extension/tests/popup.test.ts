@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ExtractJobField, getFieldFromObject } from '../popupUtils';
+import type { GraphqlResponse } from '../types';
 
 // ============ getFieldFromObject Tests ============
 describe('getFieldFromObject_givenSingleLevelPath_returnsValue', () => {
@@ -51,20 +52,21 @@ describe('getFieldFromObject_givenUndefinedObject_returnsNull', () => {
 
 describe('getFieldFromObject_givenEmptyKeyPath_returnsValue', () => {
   it('returns value at empty array path element', () => {
-    const obj: { '': string } = { '': 'value' };
+    const obj: Record<string, string> = { '': 'value' };
     expect(getFieldFromObject(obj, [''])).toBe('value');
   });
 });
 
 // ============ ExtractJobField Tests ============
-describe('ExtractJobField_givenValidResponse_returnsJobTitle', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
+const mockResponse = (data: unknown): GraphqlResponse => ({
+  url: 'https://app.joinhandshake.com/graphql',
+  data: JSON.stringify(data),
+  timestamp: new Date().toISOString(),
+});
 
+describe('ExtractJobField_givenValidResponse_returnsJobTitle', () => {
   it('extracts job title from first response', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: { job: { title: 'Software Engineer' } },
       }),
@@ -74,13 +76,8 @@ describe('ExtractJobField_givenValidResponse_returnsJobTitle', () => {
 });
 
 describe('ExtractJobField_givenNestedEmployerData_returnsEmployerName', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('extracts nested employer name', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: { job: { employer: { name: 'Google' } } },
       }),
@@ -97,21 +94,16 @@ describe('ExtractJobField_givenEmptyResponses_returnsNull', () => {
 
 describe('ExtractJobField_givenNonArrayInput_returnsNull', () => {
   it('returns null when input is not an array', () => {
-    expect(ExtractJobField(null as any, ['job', 'title'])).toBeNull();
-    expect(ExtractJobField(undefined as any, ['job', 'title'])).toBeNull();
-    expect(ExtractJobField({} as any, ['job', 'title'])).toBeNull();
+    expect(ExtractJobField(null as unknown as GraphqlResponse[], ['job', 'title'])).toBeNull();
+    expect(ExtractJobField(undefined as unknown as GraphqlResponse[], ['job', 'title'])).toBeNull();
+    expect(ExtractJobField({} as unknown as GraphqlResponse[], ['job', 'title'])).toBeNull();
   });
 });
 
 describe('ExtractJobField_givenInvalidJSON_skipsResponseAndFindsValid', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('skips responses with invalid JSON', () => {
-    const responses: any[] = [
-      { data: 'invalid json {]' },
+    const responses: GraphqlResponse[] = [
+      { data: 'invalid json {]', url: '', timestamp: new Date().toISOString() },
       mockResponse({
         data: { job: { title: 'Valid Job' } },
       }),
@@ -121,14 +113,9 @@ describe('ExtractJobField_givenInvalidJSON_skipsResponseAndFindsValid', () => {
 });
 
 describe('ExtractJobField_givenMissingDataProperty_skipsResponse', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('skips responses with missing data property', () => {
-    const responses: any[] = [
-      { noDataField: 'value' },
+    const responses: GraphqlResponse[] = [
+      { noDataField: 'value', url: '', data: '', timestamp: new Date().toISOString() } as unknown as GraphqlResponse,
       mockResponse({
         data: { job: { title: 'Found Title' } },
       }),
@@ -138,14 +125,9 @@ describe('ExtractJobField_givenMissingDataProperty_skipsResponse', () => {
 });
 
 describe('ExtractJobField_givenNonStringData_skipsResponse', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('skips responses with non-string data field', () => {
-    const responses: any[] = [
-      { data: { job: { title: 'This is an object, not string' } } },
+    const responses: GraphqlResponse[] = [
+      { data: { job: { title: 'This is an object, not string' } } as unknown as string, url: '', timestamp: new Date().toISOString() },
       mockResponse({
         data: { job: { title: 'String data' } },
       }),
@@ -155,15 +137,10 @@ describe('ExtractJobField_givenNonStringData_skipsResponse', () => {
 });
 
 describe('ExtractJobField_givenEmptyStringField_returnsNull', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('returns null when field is empty string', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
-        data: { job: { title: '   ' } }, // only whitespace
+        data: { job: { title: '   ' } },
       }),
     ];
     expect(ExtractJobField(responses, ['job', 'title'])).toBeNull();
@@ -171,32 +148,20 @@ describe('ExtractJobField_givenEmptyStringField_returnsNull', () => {
 });
 
 describe('ExtractJobField_givenWhitespaceField_preservesWhitespace', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('trims whitespace from returned values', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: { job: { title: '  Software Engineer  ' } },
       }),
     ];
-    // Should return trimmed, but function only checks if trim().length > 0
-    // The actual return value might have whitespace
     const result: string | null = ExtractJobField(responses, ['job', 'title']);
-    expect(result).toBe('  Software Engineer  '); // returns original, just verified it's non-empty
+    expect(result).toBe('  Software Engineer  ');
   });
 });
 
 describe('ExtractJobField_givenNestedObjectData_searchesAndFinds', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('searches nested objects in parsed.data', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: {
           someKey: {
@@ -210,13 +175,8 @@ describe('ExtractJobField_givenNestedObjectData_searchesAndFinds', () => {
 });
 
 describe('ExtractJobField_givenMultipleResponses_returnsFirstMatch', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('returns first matching value from multiple responses', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: { job: { title: 'First Job' } },
       }),
@@ -229,14 +189,9 @@ describe('ExtractJobField_givenMultipleResponses_returnsFirstMatch', () => {
 });
 
 describe('ExtractJobField_givenNullDataInResponse_skipsAndFinds', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('handles response with null data', () => {
-    const responses: any[] = [
-      { data: JSON.stringify(null) },
+    const responses: GraphqlResponse[] = [
+      { data: JSON.stringify(null), url: '', timestamp: new Date().toISOString() },
       mockResponse({
         data: { job: { title: 'Valid Job' } },
       }),
@@ -246,13 +201,8 @@ describe('ExtractJobField_givenNullDataInResponse_skipsAndFinds', () => {
 });
 
 describe('ExtractJobField_givenMultipleTopLevelObjects_searchesAll', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('searches through multiple top-level object values', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: {
           getJob: { job: { title: 'Job Title A' } },
@@ -265,13 +215,8 @@ describe('ExtractJobField_givenMultipleTopLevelObjects_searchesAll', () => {
 });
 
 describe('ExtractJobField_givenEmptyPath_returnsNull', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('returns null when path is empty array', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: { job: { title: 'Some Job' } },
       }),
@@ -281,13 +226,8 @@ describe('ExtractJobField_givenEmptyPath_returnsNull', () => {
 });
 
 describe('ExtractJobField_givenDeeplyNestedPath_returnsValue', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('handles deeply nested paths', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: {
           job: {
@@ -309,16 +249,11 @@ describe('ExtractJobField_givenDeeplyNestedPath_returnsValue', () => {
 });
 
 describe('ExtractJobField_givenNonStringValueAtPath_skipsAndFinds', () => {
-  const mockResponse = (data: any): { data: string; timestamp: string } => ({
-    data: JSON.stringify(data),
-    timestamp: new Date().toISOString(),
-  });
-
   it('skips non-string values at the target path', () => {
-    const responses: any[] = [
+    const responses: GraphqlResponse[] = [
       mockResponse({
         data: {
-          job: { title: { nested: 'object' } }, // not a string
+          job: { title: { nested: 'object' } },
         },
       }),
       mockResponse({

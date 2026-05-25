@@ -1,3 +1,5 @@
+import type { GraphqlResponse } from './types';
+
 // Helper function to calculate relative time (e.g., "5 minutes ago")
 export function GetRelativeTime(isoString: string): string {
 	const now: Date = new Date();
@@ -20,33 +22,35 @@ export function GetRelativeTime(isoString: string): string {
 	return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
 }
 
-export function getFieldFromObject(obj: any, path: string[]): any {
-	let current: any = obj;
+export function getFieldFromObject(obj: unknown, path: string[]): unknown {
+	let current: unknown = obj;
 	for (const segment of path) {
 		if (!current || typeof current !== "object") return null;
-		current = current[segment];
+		current = (current as Record<string, unknown>)[segment];
 	}
 	return current ?? null;
 }
 
-export function ExtractJobField(responses: any[], path: string[]): string | null {
+export function ExtractJobField(responses: GraphqlResponse[], path: string[]): string | null {
 	if (!Array.isArray(responses)) return null;
 
 	for (const response of responses) {
 		if (!response || typeof response.data !== "string") continue;
 
 		try {
-			const parsed: any = JSON.parse(response.data);
-			const candidate: any = getFieldFromObject(parsed?.data, path);
-			if (typeof candidate === "string" && candidate.trim().length > 0) {
-				return candidate;
-			}
+			const parsed: unknown = JSON.parse(response.data);
+			if (isObject(parsed) && "data" in parsed) {
+				const candidate: unknown = getFieldFromObject(parsed.data, path);
+				if (typeof candidate === "string" && candidate.trim().length > 0) {
+					return candidate;
+				}
 
-			if (parsed?.data && typeof parsed.data === "object") {
-				for (const value of Object.values(parsed.data)) {
-					const nested: any = getFieldFromObject(value, path);
-					if (typeof nested === "string" && nested.trim().length > 0) {
-						return nested;
+				if (isObject(parsed.data)) {
+					for (const value of Object.values(parsed.data as Record<string, unknown>)) {
+						const nested: unknown = getFieldFromObject(value, path);
+						if (typeof nested === "string" && nested.trim().length > 0) {
+							return nested;
+						}
 					}
 				}
 			}
@@ -57,3 +61,6 @@ export function ExtractJobField(responses: any[], path: string[]): string | null
 
 	return null;
 }
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+	value !== null && typeof value === "object";
