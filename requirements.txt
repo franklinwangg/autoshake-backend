@@ -2,6 +2,7 @@ anthropic
 beautifulsoup4
 fastapi
 httpx
+openai
 python-dotenv
 uvicorn[standard]
 weasyprint
