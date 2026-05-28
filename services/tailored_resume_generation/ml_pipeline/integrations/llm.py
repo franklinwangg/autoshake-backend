@@ -3,7 +3,7 @@ import os
 
 import httpx
 import anthropic
-from openai import AzureOpenAI
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,27 +12,23 @@ PROVIDER = os.getenv("LLM_PROVIDER", "claude")
 CLAUDE_MODEL = "claude-opus-4-7"
 OLLAMA_BASE = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
-AZURE_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
 
 _claude = anthropic.Anthropic() if PROVIDER == "claude" else None
-_azure = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01"),
-) if PROVIDER == "azure" else None
+_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) if PROVIDER == "openai" else None
 
 
 def call_llm(prompt: str, max_tokens: int = 2048) -> str:
-    if PROVIDER == "azure":
-        return _call_azure(prompt, max_tokens)
+    if PROVIDER == "openai":
+        return _call_openai(prompt, max_tokens)
     if PROVIDER == "ollama":
         return _call_ollama(prompt, max_tokens)
     return _call_claude(prompt, max_tokens)
 
 
 def stream_llm(prompt: str, max_tokens: int = 8096) -> str:
-    if PROVIDER == "azure":
-        return _call_azure(prompt, max_tokens)
+    if PROVIDER == "openai":
+        return _call_openai(prompt, max_tokens)
     if PROVIDER == "ollama":
         return _stream_ollama(prompt, max_tokens)
     return _stream_claude(prompt, max_tokens)
@@ -61,11 +57,11 @@ def _stream_claude(prompt: str, max_tokens: int) -> str:
     return next(b.text for b in message.content if b.type == "text")
 
 
-# --- Azure OpenAI ---
+# --- OpenAI ---
 
-def _call_azure(prompt: str, max_tokens: int) -> str:
-    response = _azure.chat.completions.create(
-        model=AZURE_DEPLOYMENT,
+def _call_openai(prompt: str, max_tokens: int) -> str:
+    response = _openai.chat.completions.create(
+        model=OPENAI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
     )
