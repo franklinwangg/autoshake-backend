@@ -193,14 +193,20 @@
   var mainView = null;
   var createAccountView = null;
   function ShowLoginView() {
-    if (loginView) loginView.style.display = "flex";
-    if (mainView) mainView.style.display = "none";
-    if (createAccountView) createAccountView.style.display = "none";
+    if (loginView) loginView.classList.add("active");
+    if (loginView) loginView.classList.remove("hidden");
+    if (mainView) mainView.classList.add("hidden");
+    if (mainView) mainView.classList.remove("active");
+    if (createAccountView) createAccountView.classList.add("hidden");
+    if (createAccountView) createAccountView.classList.remove("active");
   }
   function ShowCreateAccountView() {
-    if (loginView) loginView.style.display = "none";
-    if (createAccountView) createAccountView.style.display = "flex";
-    if (mainView) mainView.style.display = "none";
+    if (loginView) loginView.classList.add("hidden");
+    if (loginView) loginView.classList.remove("active");
+    if (createAccountView) createAccountView.classList.add("active");
+    if (createAccountView) createAccountView.classList.remove("hidden");
+    if (mainView) mainView.classList.add("hidden");
+    if (mainView) mainView.classList.remove("active");
     const createUsernameInput = document.getElementById("createUsernameInput");
     const createPasswordInput = document.getElementById("createPasswordInput");
     const confirmPasswordInput = document.getElementById("confirmPasswordInput");
@@ -211,8 +217,12 @@
     if (createAccountError) createAccountError.textContent = "";
   }
   function ShowMainView() {
-    if (loginView) loginView.style.display = "none";
-    if (mainView) mainView.style.display = "block";
+    if (loginView) loginView.classList.add("hidden");
+    if (loginView) loginView.classList.remove("active");
+    if (mainView) mainView.classList.add("active");
+    if (mainView) mainView.classList.remove("hidden");
+    if (createAccountView) createAccountView.classList.add("hidden");
+    if (createAccountView) createAccountView.classList.remove("active");
     chrome.storage.local.get(["username"], (result) => {
       const usernameDisplay = document.getElementById("usernameDisplay");
       if (usernameDisplay && result.username) {
@@ -325,15 +335,9 @@
       if (jobs.length > 0) {
         submitButton.disabled = false;
         submitButton.textContent = "Submit Job List";
-        submitButton.style.backgroundColor = "#4CAF50";
-        submitButton.style.color = "white";
-        submitButton.style.cursor = "pointer";
       } else {
         submitButton.disabled = true;
         submitButton.textContent = "Need jobs to submit";
-        submitButton.style.backgroundColor = "#cccccc";
-        submitButton.style.color = "#666";
-        submitButton.style.cursor = "not-allowed";
       }
     });
   }
@@ -344,7 +348,7 @@
       const jobData = result.jobData || {};
       const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length === 0) {
-        listEl.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
+        listEl.innerHTML = "<p class='no-data-text'>No jobs in your list. Click a handshake job to add one!</p>";
         UpdateSubmitButtonState();
         return;
       }
@@ -412,8 +416,8 @@
       graphqlBtn.addEventListener("click", () => {
         const container = document.getElementById("graphqlResponses");
         if (!container) return;
-        const isHidden = container.style.display === "none";
-        container.style.display = isHidden ? "block" : "none";
+        const isHidden = container.classList.contains("hidden");
+        container.classList.toggle("hidden", !isHidden);
         graphqlBtn.textContent = isHidden ? "Hide" : "Show";
       });
     }
@@ -424,10 +428,10 @@
     mainView = document.getElementById("mainView");
     createAccountView = document.getElementById("createAccountView");
     if (true) {
-      const graphqlHeader = document.querySelector("div[style*='display:flex']");
+      const graphqlHeader = document.querySelector(".graphql-section-header");
       const graphqlContainer = document.getElementById("graphqlResponses");
-      if (graphqlHeader) graphqlHeader.style.display = "none";
-      if (graphqlContainer) graphqlContainer.style.display = "none";
+      if (graphqlHeader) graphqlHeader.classList.add("hidden");
+      if (graphqlContainer) graphqlContainer.classList.add("hidden");
     }
     const loginButton = document.getElementById("loginButton");
     loginButton?.addEventListener("click", HandleLogin);

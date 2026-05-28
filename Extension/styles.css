@@ -9,6 +9,18 @@ body {
 	min-width: 600px;
 }
 
+.hidden {
+	display: none !important;
+}
+
+.active {
+	display: flex !important;
+}
+
+#mainView.active {
+	display: block !important;
+}
+
 .toggle-container {
 	display: inline-flex;
 	flex-direction: column;
@@ -196,6 +208,104 @@ input:checked + .slider:before {
 	background-color: #3b4f8f;
 }
 
+.link-container {
+	text-align: center;
+	margin-top: 12px;
+}
+
+.auth-link {
+	background: none;
+	border: none;
+	color: #4CAF50;
+	cursor: pointer;
+	font-size: 12px;
+	text-decoration: underline;
+	padding: 0;
+}
+
+#createAccountView {
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 200px;
+}
+
+#mainView {
+	display: none;
+}
+
+.main-header {
+	position: relative;
+	margin-bottom: 16px;
+}
+
+.main-header h1 {
+	text-align: center;
+	margin: 0;
+}
+
+.header-actions {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+
+#logoutButton {
+	padding: 6px 12px;
+	background-color: #EF9A9A;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+#usernameDisplay {
+	color: #666;
+	font-size: 14px;
+	margin-top: 6px;
+}
+
+.graphql-section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.submit-container {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+#submitButton {
+	width: 100%;
+	padding: 10px;
+	border: none;
+	border-radius: 4px;
+	font-size: 16px;
+}
+
+#submitButton:disabled {
+	background-color: #cccccc;
+	color: #666;
+	cursor: not-allowed;
+}
+
+#submitButton:not(:disabled) {
+	background-color: #4CAF50;
+	color: white;
+	cursor: pointer;
+}
+
+.no-data-text {
+	color: #999;
+}
+
 .graphql-item {
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -220,6 +330,7 @@ input:checked + .slider:before {
 .graphql-toggle { color: #666; font-size: 10px; }
 
 .graphql-body {
+  display: none;
   max-height: 200px;
   overflow-y: auto;
   padding: 8px;

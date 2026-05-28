@@ -20,15 +20,21 @@ let mainView: HTMLElement | null = null;
 let createAccountView: HTMLElement | null = null;
 
 function ShowLoginView(): void {
-	if (loginView) loginView.style.display = "flex";
-	if (mainView) mainView.style.display = "none";
-	if (createAccountView) createAccountView.style.display = "none";
+	if (loginView) loginView.classList.add("active");
+	if (loginView) loginView.classList.remove("hidden");
+	if (mainView) mainView.classList.add("hidden");
+	if (mainView) mainView.classList.remove("active");
+	if (createAccountView) createAccountView.classList.add("hidden");
+	if (createAccountView) createAccountView.classList.remove("active");
 }
 
 function ShowCreateAccountView(): void {
-	if (loginView) loginView.style.display = "none";
-	if (createAccountView) createAccountView.style.display = "flex";
-	if (mainView) mainView.style.display = "none";
+	if (loginView) loginView.classList.add("hidden");
+	if (loginView) loginView.classList.remove("active");
+	if (createAccountView) createAccountView.classList.add("active");
+	if (createAccountView) createAccountView.classList.remove("hidden");
+	if (mainView) mainView.classList.add("hidden");
+	if (mainView) mainView.classList.remove("active");
 	
 	// Clear form inputs
 	const createUsernameInput = document.getElementById("createUsernameInput") as HTMLInputElement | null;
@@ -43,8 +49,12 @@ function ShowCreateAccountView(): void {
 }
 
 function ShowMainView(): void {
-	if (loginView) loginView.style.display = "none";
-	if (mainView) mainView.style.display = "block";
+	if (loginView) loginView.classList.add("hidden");
+	if (loginView) loginView.classList.remove("active");
+	if (mainView) mainView.classList.add("active");
+	if (mainView) mainView.classList.remove("hidden");
+	if (createAccountView) createAccountView.classList.add("hidden");
+	if (createAccountView) createAccountView.classList.remove("active");
 	
 	// Display username in header
 	chrome.storage.local.get(["username"], (result: StorageResult) => {
@@ -143,7 +153,7 @@ function DisplayGraphQLResponses(): void {
       .flatMap((job: JobRecord) => Array.isArray(job.graphqlResponses) ? job.graphqlResponses : []);
 
     if (responses.length === 0) {
-      container.innerHTML = "<p style='color:#999'>No responses yet</p>";
+      container.innerHTML = "<p class='no-data-text'>No responses yet</p>";
       return;
     }
 
@@ -167,7 +177,7 @@ function DisplayGraphQLResponses(): void {
           <span class="graphql-time">${GetRelativeTime(r.timestamp)}</span>
           <span class="graphql-toggle">▶</span>
         </div>
-        <pre class="graphql-body" id="body-${i}" style="display:none">${JSON.stringify(parsed, null, 2)}</pre>
+        <pre class="graphql-body" id="body-${i}">${JSON.stringify(parsed, null, 2)}</pre>
       `;
 
       const headerElement: Element | null = item.querySelector(".graphql-header");
@@ -259,15 +269,9 @@ function UpdateSubmitButtonState(): void {
 		if (jobs.length > 0) {
 			submitButton!.disabled = false;
 			submitButton!.textContent = "Submit Job List";
-			submitButton!.style.backgroundColor = "#4CAF50";
-			submitButton!.style.color = "white";
-			submitButton!.style.cursor = "pointer";
 		} else {
 			submitButton!.disabled = true;
 			submitButton!.textContent = "Need jobs to submit";
-			submitButton!.style.backgroundColor = "#cccccc";
-			submitButton!.style.color = "#666";
-			submitButton!.style.cursor = "not-allowed";
 		}
 	});
 }
@@ -281,7 +285,7 @@ function DisplayJobs(): void {
 		const jobs: JobRecord[] = Object.values(jobData).filter((job: JobRecord) => job.clicked);
 		
 		if (jobs.length === 0) {
-			listEl.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
+			listEl.innerHTML = "<p class='no-data-text'>No jobs in your list. Click a handshake job to add one!</p>";
 			UpdateSubmitButtonState();
 			return;
 		}
@@ -365,8 +369,8 @@ function InitializePopup(): void {
 			const container: HTMLElement | null = document.getElementById("graphqlResponses");
 			if (!container) return;
 
-			const isHidden: boolean = container.style.display === "none";
-			container.style.display = isHidden ? "block" : "none";
+			const isHidden: boolean = container.classList.contains("hidden");
+			container.classList.toggle("hidden", !isHidden);
 			graphqlBtn.textContent = isHidden ? "Hide" : "Show";
 		});
 	}
@@ -381,10 +385,10 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 
 	// Hide GraphQL section if not in debug mode
 	if (!DEBUG_GRAPHQL_VIEW) {
-		const graphqlHeader = document.querySelector("div[style*='display:flex']");
+		const graphqlHeader = document.querySelector(".graphql-section-header");
 		const graphqlContainer = document.getElementById("graphqlResponses");
-		if (graphqlHeader) graphqlHeader.style.display = "none";
-		if (graphqlContainer) graphqlContainer.style.display = "none";
+		if (graphqlHeader) graphqlHeader.classList.add("hidden");
+		if (graphqlContainer) graphqlContainer.classList.add("hidden");
 	}
 
 	const loginButton = document.getElementById("loginButton");
