@@ -2,6 +2,9 @@ import type { JobRecord, JobData, StorageResult, GraphqlResponse } from './types
 import { GetRelativeTime, GetFieldFromObject, ExtractJobField } from './popupUtils';
 import { IsObject } from './inject';
 
+// Compile-time debug flag for GraphQL view
+declare const DEBUG_GRAPHQL_VIEW: boolean;
+
 interface ParsedGraphQLData {
 	[key: string]: unknown;
 }
@@ -17,8 +20,10 @@ function InitializePopupDOMElements() {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
-	graphqlToggleButton = document.getElementById("toggleGraphQL");
-	graphqlStats = document.getElementById("graphqlStats");
+	if (DEBUG_GRAPHQL_VIEW) {
+		graphqlToggleButton = document.getElementById("toggleGraphQL");
+		graphqlStats = document.getElementById("graphqlStats");
+	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 }
 
@@ -208,6 +213,14 @@ function DisplayJobs(): void {
 }
 
 if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof (globalThis as Record<string, unknown>).vi === "undefined") {
+	// Hide GraphQL section if not in debug mode
+	if (!DEBUG_GRAPHQL_VIEW) {
+		const graphqlHeader = document.querySelector("div[style*='display:flex']");
+		const graphqlContainer = document.getElementById("graphqlResponses");
+		if (graphqlHeader) graphqlHeader.style.display = "none";
+		if (graphqlContainer) graphqlContainer.style.display = "none";
+	}
+
 	InitializePopupDOMElements();
 
 	if (toggle && stateText && jobList) {
@@ -228,17 +241,21 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 		});
 
 		DisplayJobs();
-		DisplayGraphQLResponses();
+		if (DEBUG_GRAPHQL_VIEW) {
+			DisplayGraphQLResponses();
+		}
 		UpdateSubmitButtonState();
 
-		graphqlBtn.addEventListener("click", () => {
-		  const container: HTMLElement | null = document.getElementById("graphqlResponses");
-		  if (!container) return;
+		if (DEBUG_GRAPHQL_VIEW) {
+			graphqlBtn.addEventListener("click", () => {
+			  const container: HTMLElement | null = document.getElementById("graphqlResponses");
+			  if (!container) return;
 
-		  const isHidden: boolean = container.style.display === "none";
-		  container.style.display = isHidden ? "block" : "none";
-		  graphqlBtn.textContent = isHidden ? "Hide" : "Show";
-		});
+			  const isHidden: boolean = container.style.display === "none";
+			  container.style.display = isHidden ? "block" : "none";
+			  graphqlBtn.textContent = isHidden ? "Hide" : "Show";
+			});
+		}
 
 		submitButton?.addEventListener("click", SubmitJobList);
 	}

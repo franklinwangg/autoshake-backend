@@ -7,8 +7,9 @@
     "vitest": "^1.0.0"
   },
   "scripts": {
-    "build": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser",
-    "watch": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser --watch",
+    "build": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser --define:DEBUG_GRAPHQL_VIEW=false",
+    "build:debug": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser --define:DEBUG_GRAPHQL_VIEW=true",
+    "watch": "esbuild content.ts popup.ts background.ts inject.ts --bundle --outdir=dist --platform=browser --watch --define:DEBUG_GRAPHQL_VIEW=true",
     "test": "vitest",
     "test:run": "vitest run"
   }
