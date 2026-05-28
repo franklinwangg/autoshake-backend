@@ -191,9 +191,24 @@
   var submitButton = null;
   var loginView = null;
   var mainView = null;
+  var createAccountView = null;
   function ShowLoginView() {
     if (loginView) loginView.style.display = "flex";
     if (mainView) mainView.style.display = "none";
+    if (createAccountView) createAccountView.style.display = "none";
+  }
+  function ShowCreateAccountView() {
+    if (loginView) loginView.style.display = "none";
+    if (createAccountView) createAccountView.style.display = "flex";
+    if (mainView) mainView.style.display = "none";
+    const createUsernameInput = document.getElementById("createUsernameInput");
+    const createPasswordInput = document.getElementById("createPasswordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    const createAccountError = document.getElementById("createAccountError");
+    if (createUsernameInput) createUsernameInput.value = "";
+    if (createPasswordInput) createPasswordInput.value = "";
+    if (confirmPasswordInput) confirmPasswordInput.value = "";
+    if (createAccountError) createAccountError.textContent = "";
   }
   function ShowMainView() {
     if (loginView) loginView.style.display = "none";
@@ -223,6 +238,28 @@
       if (passwordInput) passwordInput.value = "";
       ShowMainView();
     });
+  }
+  function HandleCreateAccount() {
+    const createUsernameInput = document.getElementById("createUsernameInput");
+    const createPasswordInput = document.getElementById("createPasswordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    const createAccountError = document.getElementById("createAccountError");
+    const username = createUsernameInput?.value.trim() ?? "";
+    const password = createPasswordInput?.value ?? "";
+    const confirmPassword = confirmPasswordInput?.value ?? "";
+    if (createAccountError) createAccountError.textContent = "";
+    if (!username || !password || !confirmPassword) {
+      if (createAccountError) createAccountError.textContent = "Please fill in all fields.";
+      return;
+    }
+    if (password !== confirmPassword) {
+      if (createAccountError) createAccountError.textContent = "Passwords do not match.";
+      return;
+    }
+    if (createUsernameInput) createUsernameInput.value = "";
+    if (createPasswordInput) createPasswordInput.value = "";
+    if (confirmPasswordInput) confirmPasswordInput.value = "";
+    ShowLoginView();
   }
   function HandleLogout() {
     chrome.storage.local.set({ username: "" }, () => {
@@ -385,6 +422,7 @@
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
     loginView = document.getElementById("loginView");
     mainView = document.getElementById("mainView");
+    createAccountView = document.getElementById("createAccountView");
     if (true) {
       const graphqlHeader = document.querySelector("div[style*='display:flex']");
       const graphqlContainer = document.getElementById("graphqlResponses");
@@ -395,9 +433,19 @@
     loginButton?.addEventListener("click", HandleLogin);
     const logoutButton = document.getElementById("logoutButton");
     logoutButton?.addEventListener("click", HandleLogout);
+    const createAccountLink = document.getElementById("createAccountLink");
+    createAccountLink?.addEventListener("click", ShowCreateAccountView);
+    const createAccountButton = document.getElementById("createAccountButton");
+    createAccountButton?.addEventListener("click", HandleCreateAccount);
+    const backToLoginLink = document.getElementById("backToLoginLink");
+    backToLoginLink?.addEventListener("click", ShowLoginView);
     const passwordInput = document.getElementById("passwordInput");
     passwordInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") HandleLogin();
+    });
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    confirmPasswordInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") HandleCreateAccount();
     });
     chrome.storage.local.get(["username"], (result) => {
       if (result.username) {

@@ -17,10 +17,29 @@ let graphqlStats: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
 let loginView: HTMLElement | null = null;
 let mainView: HTMLElement | null = null;
+let createAccountView: HTMLElement | null = null;
 
 function ShowLoginView(): void {
 	if (loginView) loginView.style.display = "flex";
 	if (mainView) mainView.style.display = "none";
+	if (createAccountView) createAccountView.style.display = "none";
+}
+
+function ShowCreateAccountView(): void {
+	if (loginView) loginView.style.display = "none";
+	if (createAccountView) createAccountView.style.display = "flex";
+	if (mainView) mainView.style.display = "none";
+	
+	// Clear form inputs
+	const createUsernameInput = document.getElementById("createUsernameInput") as HTMLInputElement | null;
+	const createPasswordInput = document.getElementById("createPasswordInput") as HTMLInputElement | null;
+	const confirmPasswordInput = document.getElementById("confirmPasswordInput") as HTMLInputElement | null;
+	const createAccountError = document.getElementById("createAccountError");
+	
+	if (createUsernameInput) createUsernameInput.value = "";
+	if (createPasswordInput) createPasswordInput.value = "";
+	if (confirmPasswordInput) confirmPasswordInput.value = "";
+	if (createAccountError) createAccountError.textContent = "";
 }
 
 function ShowMainView(): void {
@@ -55,13 +74,46 @@ function HandleLogin(): void {
 		return;
 	}
 
-	// Always succeeds (no backend validation)
+	// BACKEND TODO: Validate credentials against the backend server
+	// For now, always succeeds (no backend validation)
 	chrome.storage.local.set({ username }, () => {
 		// Clear form inputs after successful login
 		if (usernameInput) usernameInput.value = "";
 		if (passwordInput) passwordInput.value = "";
 		ShowMainView();
 	});
+}
+
+function HandleCreateAccount(): void {
+	const createUsernameInput = document.getElementById("createUsernameInput") as HTMLInputElement | null;
+	const createPasswordInput = document.getElementById("createPasswordInput") as HTMLInputElement | null;
+	const confirmPasswordInput = document.getElementById("confirmPasswordInput") as HTMLInputElement | null;
+	const createAccountError = document.getElementById("createAccountError");
+
+	const username = createUsernameInput?.value.trim() ?? "";
+	const password = createPasswordInput?.value ?? "";
+	const confirmPassword = confirmPasswordInput?.value ?? "";
+
+	// Clear any existing errors
+	if (createAccountError) createAccountError.textContent = "";
+
+	if (!username || !password || !confirmPassword) {
+		if (createAccountError) createAccountError.textContent = "Please fill in all fields.";
+		return;
+	}
+
+	if (password !== confirmPassword) {
+		if (createAccountError) createAccountError.textContent = "Passwords do not match.";
+		return;
+	}
+
+	// BACKEND TODO: Send account creation request to the backend server
+	// with username and password to create a new user account
+	// For now, just clear inputs and return to login
+	if (createUsernameInput) createUsernameInput.value = "";
+	if (createPasswordInput) createPasswordInput.value = "";
+	if (confirmPasswordInput) confirmPasswordInput.value = "";
+	ShowLoginView();
 }
 
 function HandleLogout(): void {
@@ -169,7 +221,7 @@ function SubmitJobList(): void {
 
 		console.log("Submitting job list:", payload);
 
-		// TODO: SERVER SUBMISSION
+		// BACKEND TODO: Send the job list submission to the backend server
 		// This is where the job list will be submitted to the FastAPI backend server.
 		// The implementation will involve:
 		// 1. Making a POST request to the FastAPI server endpoint (e.g., http://localhost:8000/submit-jobs)
@@ -325,6 +377,7 @@ function InitializePopup(): void {
 if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof (globalThis as Record<string, unknown>).vi === "undefined") {
 	loginView = document.getElementById("loginView");
 	mainView = document.getElementById("mainView");
+	createAccountView = document.getElementById("createAccountView");
 
 	// Hide GraphQL section if not in debug mode
 	if (!DEBUG_GRAPHQL_VIEW) {
@@ -340,9 +393,23 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 	const logoutButton = document.getElementById("logoutButton");
 	logoutButton?.addEventListener("click", HandleLogout);
 
+	const createAccountLink = document.getElementById("createAccountLink");
+	createAccountLink?.addEventListener("click", ShowCreateAccountView);
+
+	const createAccountButton = document.getElementById("createAccountButton");
+	createAccountButton?.addEventListener("click", HandleCreateAccount);
+
+	const backToLoginLink = document.getElementById("backToLoginLink");
+	backToLoginLink?.addEventListener("click", ShowLoginView);
+
 	const passwordInput = document.getElementById("passwordInput") as HTMLInputElement | null;
 	passwordInput?.addEventListener("keydown", (e: KeyboardEvent) => {
 		if (e.key === "Enter") HandleLogin();
+	});
+
+	const confirmPasswordInput = document.getElementById("confirmPasswordInput") as HTMLInputElement | null;
+	confirmPasswordInput?.addEventListener("keydown", (e: KeyboardEvent) => {
+		if (e.key === "Enter") HandleCreateAccount();
 	});
 
 	chrome.storage.local.get(["username"], (result: StorageResult) => {

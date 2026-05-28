@@ -10,6 +10,22 @@
         <input id="passwordInput" type="password" placeholder="Password" class="login-input" />
         <div id="loginError" class="login-error"></div>
         <button id="loginButton" class="login-button">Log In</button>
+        <div style="text-align: center; margin-top: 12px;">
+          <button id="createAccountLink" style="background: none; border: none; color: #4CAF50; cursor: pointer; font-size: 12px; text-decoration: underline; padding: 0;">Create Account</button>
+        </div>
+      </div>
+    </div>
+    <div id="createAccountView" style="display:none; flex-direction: column; align-items: center; justify-content: center; min-height: 200px;">
+      <h1 class="login-title">AutoShake</h1>
+      <div class="login-form">
+        <input id="createUsernameInput" type="text" placeholder="Username" class="login-input" />
+        <input id="createPasswordInput" type="password" placeholder="Password" class="login-input" />
+        <input id="confirmPasswordInput" type="password" placeholder="Confirm Password" class="login-input" />
+        <div id="createAccountError" class="login-error"></div>
+        <button id="createAccountButton" class="login-button">Create Account</button>
+        <div style="text-align: center; margin-top: 12px;">
+          <button id="backToLoginLink" style="background: none; border: none; color: #4CAF50; cursor: pointer; font-size: 12px; text-decoration: underline; padding: 0;">Back to Log In</button>
+        </div>
       </div>
     </div>
     <div id="mainView" style="display:none">
