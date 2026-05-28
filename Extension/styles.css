@@ -143,6 +143,59 @@ input:checked + .slider:before {
 	color: #666;
 }
 
+#loginView {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 200px;
+}
+
+.login-title {
+	font-size: 2rem;
+	margin-bottom: 24px;
+}
+
+.login-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 280px;
+}
+
+.login-input {
+	padding: 10px 14px;
+	font-size: 14px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	outline: none;
+}
+
+.login-input:focus {
+	border-color: #4c61af;
+}
+
+.login-error {
+	color: #d32f2f;
+	font-size: 0.85rem;
+	min-height: 1.2em;
+}
+
+.login-button {
+	padding: 10px;
+	font-size: 16px;
+	background-color: #4c61af;
+	color: white;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.login-button:hover {
+	background-color: #3b4f8f;
+}
+
 .graphql-item {
   border: 1px solid #ddd;
   border-radius: 4px;

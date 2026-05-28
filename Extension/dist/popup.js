@@ -189,6 +189,46 @@
   var jobList = null;
   var graphqlToggleButton = null;
   var submitButton = null;
+  var loginView = null;
+  var mainView = null;
+  function ShowLoginView() {
+    if (loginView) loginView.style.display = "flex";
+    if (mainView) mainView.style.display = "none";
+  }
+  function ShowMainView() {
+    if (loginView) loginView.style.display = "none";
+    if (mainView) mainView.style.display = "block";
+    chrome.storage.local.get(["username"], (result) => {
+      const usernameDisplay = document.getElementById("usernameDisplay");
+      if (usernameDisplay && result.username) {
+        usernameDisplay.textContent = `Logged in as: ${result.username}`;
+      }
+    });
+    InitializePopupDOMElements();
+    InitializePopup();
+  }
+  function HandleLogin() {
+    const usernameInput = document.getElementById("usernameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const username = usernameInput?.value.trim() ?? "";
+    const password = passwordInput?.value ?? "";
+    if (loginError) loginError.textContent = "";
+    if (!username || !password) {
+      if (loginError) loginError.textContent = "Please enter a username and password.";
+      return;
+    }
+    chrome.storage.local.set({ username }, () => {
+      if (usernameInput) usernameInput.value = "";
+      if (passwordInput) passwordInput.value = "";
+      ShowMainView();
+    });
+  }
+  function HandleLogout() {
+    chrome.storage.local.set({ username: "" }, () => {
+      ShowLoginView();
+    });
+  }
   function InitializePopupDOMElements() {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
@@ -306,48 +346,65 @@
       UpdateSubmitButtonState();
     });
   }
+  function InitializePopup() {
+    if (!toggle || !stateText || !jobList) return;
+    const toggleEl = toggle;
+    const graphqlBtn = graphqlToggleButton;
+    chrome.storage.local.get(["trackingEnabled"], (result) => {
+      const enabled = result.trackingEnabled !== false;
+      toggleEl.checked = enabled;
+      UpdateToggleLabel(enabled);
+      toggleEl.addEventListener("change", () => {
+        const isOn = toggleEl.checked;
+        chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+          UpdateToggleLabel(isOn);
+        });
+      });
+    });
+    DisplayJobs();
+    if (false) {
+      DisplayGraphQLResponses();
+    }
+    UpdateSubmitButtonState();
+    chrome.storage.local.get(null, (items) => {
+      const storageSize = JSON.stringify(items).length;
+      const storageSizeMB = (storageSize / (1024 * 1024)).toFixed(2);
+      console.log(`Chrome Storage Size: ${storageSizeMB} MB (${storageSize} bytes)`);
+    });
+    if (false) {
+      graphqlBtn.addEventListener("click", () => {
+        const container = document.getElementById("graphqlResponses");
+        if (!container) return;
+        const isHidden = container.style.display === "none";
+        container.style.display = isHidden ? "block" : "none";
+        graphqlBtn.textContent = isHidden ? "Hide" : "Show";
+      });
+    }
+    submitButton?.addEventListener("click", SubmitJobList);
+  }
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
+    loginView = document.getElementById("loginView");
+    mainView = document.getElementById("mainView");
     if (true) {
       const graphqlHeader = document.querySelector("div[style*='display:flex']");
       const graphqlContainer = document.getElementById("graphqlResponses");
       if (graphqlHeader) graphqlHeader.style.display = "none";
       if (graphqlContainer) graphqlContainer.style.display = "none";
     }
-    InitializePopupDOMElements();
-    if (toggle && stateText && jobList) {
-      const toggleEl = toggle;
-      const graphqlBtn = graphqlToggleButton;
-      chrome.storage.local.get(["trackingEnabled"], (result) => {
-        const enabled = result.trackingEnabled !== false;
-        toggleEl.checked = enabled;
-        UpdateToggleLabel(enabled);
-        toggleEl.addEventListener("change", () => {
-          const isOn = toggleEl.checked;
-          chrome.storage.local.set({ trackingEnabled: isOn }, () => {
-            UpdateToggleLabel(isOn);
-          });
-        });
-      });
-      DisplayJobs();
-      if (false) {
-        DisplayGraphQLResponses();
+    const loginButton = document.getElementById("loginButton");
+    loginButton?.addEventListener("click", HandleLogin);
+    const logoutButton = document.getElementById("logoutButton");
+    logoutButton?.addEventListener("click", HandleLogout);
+    const passwordInput = document.getElementById("passwordInput");
+    passwordInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") HandleLogin();
+    });
+    chrome.storage.local.get(["username"], (result) => {
+      if (result.username) {
+        ShowMainView();
+      } else {
+        ShowLoginView();
       }
-      UpdateSubmitButtonState();
-      chrome.storage.local.get(null, (items) => {
-        const storageSize = JSON.stringify(items).length;
-        const storageSizeMB = (storageSize / (1024 * 1024)).toFixed(2);
-        console.log(`Chrome Storage Size: ${storageSizeMB} MB (${storageSize} bytes)`);
-      });
-      if (false) {
-        graphqlBtn.addEventListener("click", () => {
-          const container = document.getElementById("graphqlResponses");
-          if (!container) return;
-          const isHidden = container.style.display === "none";
-          container.style.display = isHidden ? "block" : "none";
-          graphqlBtn.textContent = isHidden ? "Hide" : "Show";
-        });
-      }
-      submitButton?.addEventListener("click", SubmitJobList);
-    }
+    });
   }
 })();

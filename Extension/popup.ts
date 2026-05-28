@@ -15,6 +15,60 @@ let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let graphqlStats: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
+let loginView: HTMLElement | null = null;
+let mainView: HTMLElement | null = null;
+
+function ShowLoginView(): void {
+	if (loginView) loginView.style.display = "flex";
+	if (mainView) mainView.style.display = "none";
+}
+
+function ShowMainView(): void {
+	if (loginView) loginView.style.display = "none";
+	if (mainView) mainView.style.display = "block";
+	
+	// Display username in header
+	chrome.storage.local.get(["username"], (result: StorageResult) => {
+		const usernameDisplay = document.getElementById("usernameDisplay");
+		if (usernameDisplay && result.username) {
+			usernameDisplay.textContent = `Logged in as: ${result.username}`;
+		}
+	});
+	
+	InitializePopupDOMElements();
+	InitializePopup();
+}
+
+function HandleLogin(): void {
+	const usernameInput = document.getElementById("usernameInput") as HTMLInputElement | null;
+	const passwordInput = document.getElementById("passwordInput") as HTMLInputElement | null;
+	const loginError = document.getElementById("loginError");
+
+	const username = usernameInput?.value.trim() ?? "";
+	const password = passwordInput?.value ?? "";
+
+	// Clear any existing errors
+	if (loginError) loginError.textContent = "";
+
+	if (!username || !password) {
+		if (loginError) loginError.textContent = "Please enter a username and password.";
+		return;
+	}
+
+	// Always succeeds (no backend validation)
+	chrome.storage.local.set({ username }, () => {
+		// Clear form inputs after successful login
+		if (usernameInput) usernameInput.value = "";
+		if (passwordInput) passwordInput.value = "";
+		ShowMainView();
+	});
+}
+
+function HandleLogout(): void {
+	chrome.storage.local.set({ username: "" }, () => {
+		ShowLoginView();
+	});
+}
 
 function InitializePopupDOMElements() {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
@@ -222,7 +276,56 @@ function DisplayJobs(): void {
 	});
 }
 
+function InitializePopup(): void {
+	if (!toggle || !stateText || !jobList) return;
+
+	const toggleEl: HTMLInputElement = toggle;
+	const graphqlBtn: HTMLElement = graphqlToggleButton!;
+
+	chrome.storage.local.get(["trackingEnabled"], (result: StorageResult) => {
+		const enabled: boolean = result.trackingEnabled !== false;
+		toggleEl.checked = enabled;
+		UpdateToggleLabel(enabled);
+
+		toggleEl.addEventListener("change", () => {
+			const isOn: boolean = toggleEl.checked;
+			chrome.storage.local.set({ trackingEnabled: isOn }, () => {
+				UpdateToggleLabel(isOn);
+			});
+		});
+	});
+
+	DisplayJobs();
+	if (DEBUG_GRAPHQL_VIEW) {
+		DisplayGraphQLResponses();
+	}
+	UpdateSubmitButtonState();
+
+	// Log storage size
+	chrome.storage.local.get(null, (items: Record<string, unknown>) => {
+		const storageSize = JSON.stringify(items).length;
+		const storageSizeMB = (storageSize / (1024 * 1024)).toFixed(2);
+		console.log(`Chrome Storage Size: ${storageSizeMB} MB (${storageSize} bytes)`);
+	});
+
+	if (DEBUG_GRAPHQL_VIEW) {
+		graphqlBtn.addEventListener("click", () => {
+			const container: HTMLElement | null = document.getElementById("graphqlResponses");
+			if (!container) return;
+
+			const isHidden: boolean = container.style.display === "none";
+			container.style.display = isHidden ? "block" : "none";
+			graphqlBtn.textContent = isHidden ? "Hide" : "Show";
+		});
+	}
+
+	submitButton?.addEventListener("click", SubmitJobList);
+}
+
 if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof (globalThis as Record<string, unknown>).vi === "undefined") {
+	loginView = document.getElementById("loginView");
+	mainView = document.getElementById("mainView");
+
 	// Hide GraphQL section if not in debug mode
 	if (!DEBUG_GRAPHQL_VIEW) {
 		const graphqlHeader = document.querySelector("div[style*='display:flex']");
@@ -231,49 +334,22 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 		if (graphqlContainer) graphqlContainer.style.display = "none";
 	}
 
-	InitializePopupDOMElements();
+	const loginButton = document.getElementById("loginButton");
+	loginButton?.addEventListener("click", HandleLogin);
 
-	if (toggle && stateText && jobList) {
-		const toggleEl: HTMLInputElement = toggle;
-		const graphqlBtn: HTMLElement = graphqlToggleButton!;
+	const logoutButton = document.getElementById("logoutButton");
+	logoutButton?.addEventListener("click", HandleLogout);
 
-		chrome.storage.local.get(["trackingEnabled"], (result: StorageResult) => {
-			const enabled: boolean = result.trackingEnabled !== false;
-			toggleEl.checked = enabled;
-			UpdateToggleLabel(enabled);
+	const passwordInput = document.getElementById("passwordInput") as HTMLInputElement | null;
+	passwordInput?.addEventListener("keydown", (e: KeyboardEvent) => {
+		if (e.key === "Enter") HandleLogin();
+	});
 
-			toggleEl.addEventListener("change", () => {
-				const isOn: boolean = toggleEl.checked;
-				chrome.storage.local.set({ trackingEnabled: isOn }, () => {
-					UpdateToggleLabel(isOn);
-				});
-			});
-		});
-
-		DisplayJobs();
-		if (DEBUG_GRAPHQL_VIEW) {
-			DisplayGraphQLResponses();
+	chrome.storage.local.get(["username"], (result: StorageResult) => {
+		if (result.username) {
+			ShowMainView();
+		} else {
+			ShowLoginView();
 		}
-		UpdateSubmitButtonState();
-
-		// Log storage size
-		chrome.storage.local.get(null, (items: Record<string, unknown>) => {
-			const storageSize = JSON.stringify(items).length;
-			const storageSizeMB = (storageSize / (1024 * 1024)).toFixed(2);
-			console.log(`Chrome Storage Size: ${storageSizeMB} MB (${storageSize} bytes)`);
-		});
-
-		if (DEBUG_GRAPHQL_VIEW) {
-			graphqlBtn.addEventListener("click", () => {
-			  const container: HTMLElement | null = document.getElementById("graphqlResponses");
-			  if (!container) return;
-
-			  const isHidden: boolean = container.style.display === "none";
-			  container.style.display = isHidden ? "block" : "none";
-			  graphqlBtn.textContent = isHidden ? "Hide" : "Show";
-			});
-		}
-
-		submitButton?.addEventListener("click", SubmitJobList);
-	}
+	});
 }

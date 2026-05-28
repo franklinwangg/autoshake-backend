@@ -3,22 +3,39 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <h1>AutoShake</h1>
-    <div class="toggle-container">
-      <div id="trackingLabel" class="state-text">Job Tracking: Disabled</div>
-      <label class="switch">
-        <input id="stateToggle" type="checkbox" />
-        <span class="slider"></span>
-      </label>
+    <div id="loginView">
+      <h1 class="login-title">AutoShake</h1>
+      <div class="login-form">
+        <input id="usernameInput" type="text" placeholder="Username" class="login-input" />
+        <input id="passwordInput" type="password" placeholder="Password" class="login-input" />
+        <div id="loginError" class="login-error"></div>
+        <button id="loginButton" class="login-button">Log In</button>
+      </div>
     </div>
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>GraphQL Responses</h3>
-      <button id="toggleGraphQL">Hide</button>
-    </div>
-    <div id="graphqlResponses"></div>
-    <div id="jobList"></div>
-    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-      <button id="submitButton" style="width: 100%; padding: 10px; background-color: #cccccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed; font-size: 16px;" disabled>Need jobs to submit</button>
+    <div id="mainView" style="display:none">
+      <div style="position: relative; margin-bottom: 16px;">
+        <h1 style="text-align: center; margin: 0;">AutoShake</h1>
+        <div style="position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end;">
+          <button id="logoutButton" style="padding: 6px 12px; background-color: #EF9A9A; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Log Out</button>
+          <div id="usernameDisplay" style="color: #666; font-size: 14px; margin-top: 6px;"></div>
+        </div>
+      </div>
+      <div class="toggle-container">
+        <div id="trackingLabel" class="state-text">Job Tracking: Disabled</div>
+        <label class="switch">
+          <input id="stateToggle" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>GraphQL Responses</h3>
+        <button id="toggleGraphQL">Hide</button>
+      </div>
+      <div id="graphqlResponses"></div>
+      <div id="jobList"></div>
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <button id="submitButton" style="width: 100%; padding: 10px; background-color: #cccccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed; font-size: 16px;" disabled>Need jobs to submit</button>
+      </div>
     </div>
     <script src="dist/popup.js"></script>
   </body>

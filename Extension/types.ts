@@ -27,6 +27,7 @@ export interface JobData {
 export interface StorageResult {
 	trackingEnabled?: boolean;
 	jobData?: JobData;
+	username?: string;
 }
 
 export interface StoreJobMessage {
