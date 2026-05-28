@@ -81,11 +81,19 @@ function DisplayGraphQLResponses(): void {
 function DeleteJob(jobId: string): void {
 	chrome.storage.local.get("jobData", (result: StorageResult) => {
 		const jobData: JobData = result.jobData || {};
-		delete jobData[jobId];
+		if (jobData[jobId]) {
+			jobData[jobId].clicked = false;
+		}
 		
 		chrome.storage.local.set({ jobData }, () => {
 			DisplayJobs();
 		});
+	});
+}
+
+function ClearAllJobs(): void {
+	chrome.storage.local.set({ jobData: {} }, () => {
+		DisplayJobs();
 	});
 }
 
@@ -247,6 +255,13 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 			DisplayGraphQLResponses();
 		}
 		UpdateSubmitButtonState();
+
+		// Log storage size
+		chrome.storage.local.get(null, (items: Record<string, unknown>) => {
+			const storageSize = JSON.stringify(items).length;
+			const storageSizeMB = (storageSize / (1024 * 1024)).toFixed(2);
+			console.log(`Chrome Storage Size: ${storageSizeMB} MB (${storageSize} bytes)`);
+		});
 
 		if (DEBUG_GRAPHQL_VIEW) {
 			graphqlBtn.addEventListener("click", () => {
