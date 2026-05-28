@@ -89,12 +89,6 @@ function DeleteJob(jobId: string): void {
 	});
 }
 
-function ClearAllJobs(): void {
-	chrome.storage.local.set({ jobData: {} }, () => {
-		DisplayJobs();
-	});
-}
-
 function SubmitJobList(): void {
 	chrome.storage.local.get("jobData", (result: StorageResult) => {
 		const jobData: JobData = result.jobData || {};
@@ -119,11 +113,19 @@ function SubmitJobList(): void {
 		// 1. Making a POST request to the FastAPI server endpoint (e.g., http://localhost:8000/submit-jobs)
 		// 2. Sending the payload as JSON
 		// 3. Handling the response and any errors
-		// 4. Only clearing the job list on successful submission
+		// 4. Only clearing the clicked field on successful submission
 
-		// For now, we'll just clear the list after logging
-		ClearAllJobs();
-		alert("Job list submitted and cleared!");
+		// Clear the clicked field for all submitted jobs to preserve GraphQL data
+		jobs.forEach((job: JobRecord) => {
+			if (jobData[job.jobId]) {
+				jobData[job.jobId].clicked = false;
+			}
+		});
+
+		chrome.storage.local.set({ jobData }, () => {
+			DisplayJobs();
+			alert("Job list submitted!");
+		});
 	});
 }
 

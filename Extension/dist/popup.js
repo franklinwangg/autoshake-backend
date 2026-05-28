@@ -188,16 +188,55 @@
   var stateText = null;
   var jobList = null;
   var graphqlToggleButton = null;
+  var graphqlStats = null;
   var submitButton = null;
   function InitializePopupDOMElements() {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
-    if (false) {
+    if (true) {
       graphqlToggleButton = document.getElementById("toggleGraphQL");
       graphqlStats = document.getElementById("graphqlStats");
     }
     submitButton = document.getElementById("submitButton");
+  }
+  function DisplayGraphQLResponses() {
+    const container = document.getElementById("graphqlResponses");
+    if (!container) return;
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      const responses = Object.values(jobData).flatMap((job) => Array.isArray(job.graphqlResponses) ? job.graphqlResponses : []);
+      if (responses.length === 0) {
+        container.innerHTML = "<p style='color:#999'>No responses yet</p>";
+        return;
+      }
+      container.innerHTML = "";
+      responses.slice().reverse().forEach((r, i) => {
+        const parsed = JSON.parse(r.data);
+        const parsedData = IsObject(parsed) ? parsed : null;
+        const inner = parsedData && "data" in parsedData && IsObject(parsedData.data) ? parsedData.data : null;
+        const operationName = inner ? Object.keys(inner).join(", ") || "unknown" : parsedData ? Object.keys(parsedData)[0] ?? "unknown" : "unknown";
+        const item = document.createElement("div");
+        item.className = "graphql-item";
+        item.innerHTML = `
+        <div class="graphql-header" data-index="${i}">
+          <span class="graphql-op">${operationName}</span>
+          <span class="graphql-time">${GetRelativeTime(r.timestamp)}</span>
+          <span class="graphql-toggle">\u25B6</span>
+        </div>
+        <pre class="graphql-body" id="body-${i}" style="display:none">${JSON.stringify(parsed, null, 2)}</pre>
+      `;
+        const headerElement = item.querySelector(".graphql-header");
+        headerElement?.addEventListener("click", () => {
+          const body = document.getElementById(`body-${i}`);
+          const toggleIcon = item.querySelector(".graphql-toggle");
+          const isHidden = body?.style.display === "none";
+          if (body) body.style.display = isHidden ? "block" : "none";
+          if (toggleIcon) toggleIcon.textContent = isHidden ? "\u25BC" : "\u25B6";
+        });
+        container.appendChild(item);
+      });
+    });
   }
   function DeleteJob(jobId) {
     chrome.storage.local.get("jobData", (result) => {
@@ -206,11 +245,6 @@
       chrome.storage.local.set({ jobData }, () => {
         DisplayJobs();
       });
-    });
-  }
-  function ClearAllJobs() {
-    chrome.storage.local.set({ jobData: {} }, () => {
-      DisplayJobs();
     });
   }
   function SubmitJobList() {
@@ -226,8 +260,15 @@
         submittedAt: (/* @__PURE__ */ new Date()).toISOString()
       };
       console.log("Submitting job list:", payload);
-      ClearAllJobs();
-      alert("Job list submitted and cleared!");
+      jobs.forEach((job) => {
+        if (jobData[job.jobId]) {
+          jobData[job.jobId].clicked = false;
+        }
+      });
+      chrome.storage.local.set({ jobData }, () => {
+        DisplayJobs();
+        alert("Job list submitted!");
+      });
     });
   }
   function UpdateToggleLabel(isOn) {
@@ -303,7 +344,7 @@
     });
   }
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
-    if (true) {
+    if (false) {
       const graphqlHeader = document.querySelector("div[style*='display:flex']");
       const graphqlContainer = document.getElementById("graphqlResponses");
       if (graphqlHeader) graphqlHeader.style.display = "none";
@@ -325,11 +366,11 @@
         });
       });
       DisplayJobs();
-      if (false) {
+      if (true) {
         DisplayGraphQLResponses();
       }
       UpdateSubmitButtonState();
-      if (false) {
+      if (true) {
         graphqlBtn.addEventListener("click", () => {
           const container = document.getElementById("graphqlResponses");
           if (!container) return;
