@@ -11,6 +11,7 @@ let stateText: HTMLElement | null = null;
 let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let graphqlStats: HTMLElement | null = null;
+let submitButton: HTMLButtonElement | null = null;
 
 function InitializePopupDOMElements() {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
@@ -18,6 +19,7 @@ function InitializePopupDOMElements() {
 	jobList = document.getElementById("jobList");
 	graphqlToggleButton = document.getElementById("toggleGraphQL");
 	graphqlStats = document.getElementById("graphqlStats");
+	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 }
 
 function DisplayGraphQLResponses(): void {
@@ -82,10 +84,71 @@ function DeleteJob(jobId: string): void {
 	});
 }
 
+function ClearAllJobs(): void {
+	chrome.storage.local.set({ jobData: {} }, () => {
+		DisplayJobs();
+	});
+}
+
+function SubmitJobList(): void {
+	chrome.storage.local.get("jobData", (result: StorageResult) => {
+		const jobData: JobData = result.jobData || {};
+		const jobs: JobRecord[] = Object.values(jobData).filter((job: JobRecord) => job.clicked);
+
+		if (jobs.length === 0) {
+			alert("No jobs to submit!");
+			return;
+		}
+
+		// Prepare the payload with all job data and their GraphQL responses
+		const payload = {
+			jobs: jobs,
+			submittedAt: new Date().toISOString(),
+		};
+
+		console.log("Submitting job list:", payload);
+
+		// TODO: SERVER SUBMISSION
+		// This is where the job list will be submitted to the FastAPI backend server.
+		// The implementation will involve:
+		// 1. Making a POST request to the FastAPI server endpoint (e.g., http://localhost:8000/submit-jobs)
+		// 2. Sending the payload as JSON
+		// 3. Handling the response and any errors
+		// 4. Only clearing the job list on successful submission
+
+		// For now, we'll just clear the list after logging
+		ClearAllJobs();
+		alert("Job list submitted and cleared!");
+	});
+}
+
 function UpdateToggleLabel(isOn: boolean): void {
 	if (stateText) {
 		stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}\n`;
 	}
+}
+
+function UpdateSubmitButtonState(): void {
+	if (!submitButton) return;
+	
+	chrome.storage.local.get("jobData", (result: StorageResult) => {
+		const jobData: JobData = result.jobData || {};
+		const jobs: JobRecord[] = Object.values(jobData).filter((job: JobRecord) => job.clicked);
+		
+		if (jobs.length > 0) {
+			submitButton!.disabled = false;
+			submitButton!.textContent = "Submit Job List";
+			submitButton!.style.backgroundColor = "#4CAF50";
+			submitButton!.style.color = "white";
+			submitButton!.style.cursor = "pointer";
+		} else {
+			submitButton!.disabled = true;
+			submitButton!.textContent = "Need jobs to submit";
+			submitButton!.style.backgroundColor = "#cccccc";
+			submitButton!.style.color = "#666";
+			submitButton!.style.cursor = "not-allowed";
+		}
+	});
 }
 
 function DisplayJobs(): void {
@@ -98,6 +161,7 @@ function DisplayJobs(): void {
 		
 		if (jobs.length === 0) {
 			listEl.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
+			UpdateSubmitButtonState();
 			return;
 		}
 		
@@ -139,6 +203,7 @@ function DisplayJobs(): void {
 		};
 		
 		listEl.appendChild(container);
+		UpdateSubmitButtonState();
 	});
 }
 
@@ -164,6 +229,7 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 
 		DisplayJobs();
 		DisplayGraphQLResponses();
+		UpdateSubmitButtonState();
 
 		graphqlBtn.addEventListener("click", () => {
 		  const container: HTMLElement | null = document.getElementById("graphqlResponses");
@@ -173,5 +239,7 @@ if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chr
 		  container.style.display = isHidden ? "block" : "none";
 		  graphqlBtn.textContent = isHidden ? "Hide" : "Show";
 		});
+
+		submitButton?.addEventListener("click", SubmitJobList);
 	}
 }

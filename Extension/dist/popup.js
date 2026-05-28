@@ -189,12 +189,14 @@
   var jobList = null;
   var graphqlToggleButton = null;
   var graphqlStats = null;
+  var submitButton = null;
   function InitializePopupDOMElements() {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
     graphqlToggleButton = document.getElementById("toggleGraphQL");
     graphqlStats = document.getElementById("graphqlStats");
+    submitButton = document.getElementById("submitButton");
   }
   function DisplayGraphQLResponses() {
     const container = document.getElementById("graphqlResponses");
@@ -243,11 +245,53 @@
       });
     });
   }
+  function ClearAllJobs() {
+    chrome.storage.local.set({ jobData: {} }, () => {
+      DisplayJobs();
+    });
+  }
+  function SubmitJobList() {
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      const jobs = Object.values(jobData).filter((job) => job.clicked);
+      if (jobs.length === 0) {
+        alert("No jobs to submit!");
+        return;
+      }
+      const payload = {
+        jobs,
+        submittedAt: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      console.log("Submitting job list:", payload);
+      ClearAllJobs();
+      alert("Job list submitted and cleared!");
+    });
+  }
   function UpdateToggleLabel(isOn) {
     if (stateText) {
       stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}
 `;
     }
+  }
+  function UpdateSubmitButtonState() {
+    if (!submitButton) return;
+    chrome.storage.local.get("jobData", (result) => {
+      const jobData = result.jobData || {};
+      const jobs = Object.values(jobData).filter((job) => job.clicked);
+      if (jobs.length > 0) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Submit Job List";
+        submitButton.style.backgroundColor = "#4CAF50";
+        submitButton.style.color = "white";
+        submitButton.style.cursor = "pointer";
+      } else {
+        submitButton.disabled = true;
+        submitButton.textContent = "Need jobs to submit";
+        submitButton.style.backgroundColor = "#cccccc";
+        submitButton.style.color = "#666";
+        submitButton.style.cursor = "not-allowed";
+      }
+    });
   }
   function DisplayJobs() {
     if (!jobList) return;
@@ -257,6 +301,7 @@
       const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length === 0) {
         listEl.innerHTML = "<p style='color: #999;'>No jobs in your list. Click a handshake job to add one!</p>";
+        UpdateSubmitButtonState();
         return;
       }
       listEl.innerHTML = `<h2>Job List (${jobs.length})</h2>`;
@@ -291,6 +336,7 @@
       }
       ;
       listEl.appendChild(container);
+      UpdateSubmitButtonState();
     });
   }
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
@@ -311,6 +357,7 @@
       });
       DisplayJobs();
       DisplayGraphQLResponses();
+      UpdateSubmitButtonState();
       graphqlBtn.addEventListener("click", () => {
         const container = document.getElementById("graphqlResponses");
         if (!container) return;
@@ -318,6 +365,7 @@
         container.style.display = isHidden ? "block" : "none";
         graphqlBtn.textContent = isHidden ? "Hide" : "Show";
       });
+      submitButton?.addEventListener("click", SubmitJobList);
     }
   }
 })();
