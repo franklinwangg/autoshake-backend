@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
+from supabase_auth.errors import AuthApiError
 
 from services.supabase_client import supabase
 
@@ -13,7 +14,10 @@ class AuthRequest(BaseModel):
 
 @router.post("/signup")
 def signup(body: AuthRequest):
-    response = supabase.auth.sign_up({"email": body.email, "password": body.password})
+    try:
+        response = supabase.auth.sign_up({"email": body.email, "password": body.password})
+    except AuthApiError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if response.user is None:
         raise HTTPException(status_code=400, detail="Sign-up failed")
     return {
@@ -25,7 +29,10 @@ def signup(body: AuthRequest):
 
 @router.post("/login")
 def login(body: AuthRequest):
-    response = supabase.auth.sign_in_with_password({"email": body.email, "password": body.password})
+    try:
+        response = supabase.auth.sign_in_with_password({"email": body.email, "password": body.password})
+    except AuthApiError as e:
+        raise HTTPException(status_code=401, detail=str(e))
     if response.user is None:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {
