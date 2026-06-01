@@ -48,11 +48,11 @@ def login(body: AuthRequest):
     logger.info(f"[login] Request received for email: {body.email}")
 
     try:
-        logger.debug(f"[login] Sending sign_in_with_password request to Supabase for: {body.email}")
+        logger.debug(f"[login] Sending sign_in_with_password to Supabase — email: {body.email}, password: {body.password}")
         response = supabase.auth.sign_in_with_password({"email": body.email, "password": body.password})
         logger.debug(f"[login] Supabase response received — user: {response.user}, session present: {response.session is not None}")
     except AuthApiError as e:
-        logger.error(f"[login] Supabase AuthApiError for {body.email}: {e}")
+        logger.error(f"[login] Supabase AuthApiError — email: {body.email}, password: {body.password}, error: {e}")
         raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
         logger.exception(f"[login] Unexpected error for {body.email}: {e}")
