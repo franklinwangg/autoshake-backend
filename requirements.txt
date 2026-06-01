@@ -4,5 +4,8 @@ fastapi
 httpx
 openai
 python-dotenv
+pydantic[email]
+python-multipart
+supabase
 uvicorn[standard]
 weasyprint

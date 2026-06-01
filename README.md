@@ -44,6 +44,22 @@ FastAPI Backend
 4. Each resume is rendered as a PDF and uploaded to AWS S3.
 5. The backend returns a spreadsheet with job details and download links for each resume.
 
+## API
+
+The backend is deployed on Railway:
+
+**Base URL:** `https://autoshake-production.up.railway.app`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/health` | Liveness check |
+| GET | `/templates` | List available resume templates |
+| POST | `/auth/signup` | Create a new user account |
+| POST | `/auth/login` | Log in and receive an access token |
+| POST | `/resume/upload` | Upload a PDF resume (requires Bearer token) |
+| POST | `/extract-skills` | Extract skills from a job description |
+| POST | `/generate-resume` | Generate a tailored resume PDF |
+
 ## Development
 
 Active development is on the `feature/scrape-and-parse` branch.
