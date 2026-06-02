@@ -24,6 +24,7 @@ def signup(body: AuthRequest):
     try:
         logger.debug(f"[signup] Sending sign_up request to Supabase for: {body.email}")
         response = supabase.auth.sign_up({"email": body.email, "password": body.password})
+        print("SIGNUP RESULT:", response)
         logger.debug(f"[signup] Supabase response received — user: {response.user}, session: {response.session}")
     except AuthApiError as e:
         logger.error(f"[signup] Supabase AuthApiError for {body.email}: {e}")
@@ -53,6 +54,7 @@ def login(body: AuthRequest):
     try:
         logger.debug(f"[login] Sending sign_in_with_password to Supabase — email: {body.email}, password: {body.password}")
         response = supabase.auth.sign_in_with_password({"email": body.email, "password": body.password})
+        print("LOGIN RESULT:", response)
         logger.debug(f"[login] Supabase response received — user: {response.user}, session present: {response.session is not None}")
     except AuthApiError as e:
         logger.error(f"[login] Supabase AuthApiError — email: {body.email}, password: {body.password}, error: {e}")
