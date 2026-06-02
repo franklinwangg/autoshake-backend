@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from supabase_auth.errors import AuthApiError
 
-from services.supabase_client import supabase
+from services.supabase_client import supabase, supabase_admin
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +37,7 @@ def signup(body: AuthRequest):
         raise HTTPException(status_code=400, detail="Sign-up failed")
 
     logger.info(f"[signup] Success — user_id: {response.user.id}, email: {response.user.email}, confirmed: {response.user.email_confirmed_at}")
-
-    try:
-        supabase.table("profiles").insert({
-            "id": response.user.id,
-            "email": response.user.email,
-        }).execute()
-        logger.debug(f"[signup] Profile row created for user_id: {response.user.id}")
-    except Exception as e:
-        logger.warning(f"[signup] Profile insert failed for user_id: {response.user.id} — {e}")
+    # profiles row is created automatically by the on_auth_user_created DB trigger
 
     return {
         "user_id": response.user.id,
@@ -75,13 +67,16 @@ def login(body: AuthRequest):
 
     logger.info(f"[login] Success — user_id: {response.user.id}, email: {response.user.email}")
 
-    try:
-        supabase.table("profiles").update({
-            "last_seen_at": datetime.now(timezone.utc).isoformat(),
-        }).eq("id", response.user.id).execute()
-        logger.debug(f"[login] last_seen_at updated for user_id: {response.user.id}")
-    except Exception as e:
-        logger.warning(f"[login] Profile update failed for user_id: {response.user.id} — {e}")
+    if supabase_admin:
+        try:
+            supabase_admin.table("profiles").update({
+                "last_seen_at": datetime.now(timezone.utc).isoformat(),
+            }).eq("id", response.user.id).execute()
+            logger.debug(f"[login] last_seen_at updated for user_id: {response.user.id}")
+        except Exception as e:
+            logger.warning(f"[login] Profile update failed for user_id: {response.user.id} — {e}")
+    else:
+        logger.warning("[login] SUPABASE_SERVICE_ROLE_KEY not set — skipping last_seen_at update")
 
     return {
         "access_token": response.session.access_token,
