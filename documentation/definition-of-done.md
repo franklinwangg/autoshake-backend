@@ -4,13 +4,14 @@
 
 - Acceptance criteria for every task in the story is fully met
 - All code is pushed onto the GitHub repository
-- Code has been shown and demonstrated to other members of the team
+- Code has been shown and demoed to other members of the team
 - Automated tests added or updated
 - All tests pass
 - No critical or high-severity bugs remain
 - User story is deployable without manual fixes
 - Any relevant documentation updated
 - Newly added code has manageable performance
+- Feature inspected and accepted by Product Owner
 
 ---
 

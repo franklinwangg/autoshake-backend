@@ -1,10 +1,11 @@
 # Release Plan: MVP (Fully Connected Resume Generator)
+# Release Plan
+**Product:** AutoShake AI MVP | **Release:** v1.0 | **Release Date:** June 03, 2026 
 
-
-
-## Objective
-
-Deliver a fully functional system that allows users to generate tailored resumes from selected jobs.
+## High-Level Goals
+1. Deliver a fully functional system that allows users to generate tailored resumes from selected jobs
+2. Users can select jobs to be added to a list, submit them, and receive PDFs of tailored resumes for each job they submitted
+3. Users can log into the AutoShake extension
 
 \---
 
