@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, HTTPException, UploadFile, File, Header
 from supabase_auth.errors import AuthApiError
 
-from services.supabase_client import supabase
+from services.supabase_client import supabase, supabase_admin
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,20 @@ async def upload_resume(
     file: UploadFile = File(...),
     authorization: str = Header(...),
 ):
+    print("RESUME UPLOAD HIT — filename:", file.filename, "content_type:", file.content_type)
     logger.info(f"[resume/upload] Request received — filename: {file.filename}, content_type: {file.content_type}")
 
+    try:
+        return await _upload_resume_inner(file, authorization)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        print("RESUME UPLOAD UNHANDLED EXCEPTION:", traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _upload_resume_inner(file: UploadFile, authorization: str):
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         logger.warning(f"[resume/upload] Rejected non-PDF file: {file.filename}")
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
@@ -57,8 +69,9 @@ async def upload_resume(
     storage_path = f"{user_id}/{file.filename}"
     logger.debug(f"[resume/upload] Uploading to Supabase Storage — bucket: {BUCKET}, path: {storage_path}")
 
+    storage_client = supabase_admin or supabase
     try:
-        supabase.storage.from_(BUCKET).upload(
+        storage_client.storage.from_(BUCKET).upload(
             path=storage_path,
             file=contents,
             file_options={"content-type": "application/pdf", "upsert": "true"},
@@ -68,7 +81,7 @@ async def upload_resume(
         logger.exception(f"[resume/upload] Failed to upload to Supabase Storage — path: {storage_path}, error: {e}")
         raise HTTPException(status_code=500, detail=f"Storage upload failed: {e}")
 
-    public_url = supabase.storage.from_(BUCKET).get_public_url(storage_path)
+    public_url = storage_client.storage.from_(BUCKET).get_public_url(storage_path)
     logger.info(f"[resume/upload] Success — user_id: {user_id}, path: {storage_path}, url: {public_url}")
 
     return {
