@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
@@ -36,6 +37,16 @@ def signup(body: AuthRequest):
         raise HTTPException(status_code=400, detail="Sign-up failed")
 
     logger.info(f"[signup] Success — user_id: {response.user.id}, email: {response.user.email}, confirmed: {response.user.email_confirmed_at}")
+
+    try:
+        supabase.table("profiles").insert({
+            "id": response.user.id,
+            "email": response.user.email,
+        }).execute()
+        logger.debug(f"[signup] Profile row created for user_id: {response.user.id}")
+    except Exception as e:
+        logger.warning(f"[signup] Profile insert failed for user_id: {response.user.id} — {e}")
+
     return {
         "user_id": response.user.id,
         "email": response.user.email,
@@ -63,6 +74,15 @@ def login(body: AuthRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     logger.info(f"[login] Success — user_id: {response.user.id}, email: {response.user.email}")
+
+    try:
+        supabase.table("profiles").update({
+            "last_seen_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", response.user.id).execute()
+        logger.debug(f"[login] last_seen_at updated for user_id: {response.user.id}")
+    except Exception as e:
+        logger.warning(f"[login] Profile update failed for user_id: {response.user.id} — {e}")
+
     return {
         "access_token": response.session.access_token,
         "token_type": "bearer",

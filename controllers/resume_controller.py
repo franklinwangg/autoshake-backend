@@ -25,9 +25,13 @@ async def upload_resume(
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     raw_token = authorization
-    token = authorization.removeprefix("Bearer ").strip()
-    logger.debug(f"[resume/upload] Authorization header received: {raw_token}")
-    logger.debug(f"[resume/upload] Extracted token (first 20 chars): {token[:20]}...")
+    token = authorization.removeprefix("Bearer").strip()
+    logger.debug(f"[resume/upload] Authorization header received: '{raw_token}'")
+    logger.debug(f"[resume/upload] Extracted token: '{token[:30]}...' (length: {len(token)})")
+
+    if not token:
+        logger.error(f"[resume/upload] Token is empty after stripping 'Bearer' — raw header was: '{raw_token}'")
+        raise HTTPException(status_code=401, detail="No token provided — Authorization header must be 'Bearer <token>'")
 
     try:
         logger.debug(f"[resume/upload] Calling supabase.auth.get_user with token: {token}")

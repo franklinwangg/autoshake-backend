@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "resume.schema.json",
+  "title": "Resume",
+  "description": "Input resume format consumed by the AutoShake pipeline and resume upload endpoints.",
+  "type": "object",
+  "required": ["basics", "education", "experience", "projects", "skills"],
+  "properties": {
+    "basics": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name":     { "type": "string" },
+        "headline": { "type": "string" },
+        "email":    { "type": "string", "format": "email" },
+        "phone":    { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "city":  { "type": "string" },
+            "state": { "type": "string" }
+          }
+        },
+        "links": {
+          "type": "object",
+          "properties": {
+            "linkedin": { "type": "string", "format": "uri" },
+            "github":   { "type": "string", "format": "uri" },
+            "website":  { "type": "string", "format": "uri" }
+          }
+        },
+        "summary": { "type": "string" }
+      }
+    },
+    "education": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["institution", "degree", "field", "startDate", "endDate"],
+        "properties": {
+          "institution": { "type": "string" },
+          "degree":      { "type": "string" },
+          "field":       { "type": "string" },
+          "startDate":   { "type": "string", "description": "YYYY-MM" },
+          "endDate":     { "type": "string", "description": "YYYY-MM" },
+          "gpa":         { "type": "string" },
+          "honors":      { "type": "array", "items": { "type": "string" } },
+          "coursework":  { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["company", "position", "startDate", "endDate", "bullets"],
+        "properties": {
+          "company":   { "type": "string" },
+          "position":  { "type": "string" },
+          "location":  { "type": "string" },
+          "startDate": { "type": "string", "description": "YYYY-MM" },
+          "endDate":   { "type": "string", "description": "YYYY-MM or 'Present'" },
+          "bullets":   { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "bullets"],
+        "properties": {
+          "name":         { "type": "string" },
+          "date":         { "type": "string", "description": "YYYY or YYYY-MM" },
+          "description":  { "type": "string" },
+          "bullets":      { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "technologies": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "items"],
+        "properties": {
+          "category": { "type": "string" },
+          "items":    { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    }
+  }
+}
