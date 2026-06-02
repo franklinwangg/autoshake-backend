@@ -1,6 +1,10 @@
+import io
 import logging
 
+import httpx
+import pypdf
 from fastapi import APIRouter, HTTPException, UploadFile, File, Header
+from pydantic import BaseModel
 from supabase_auth.errors import AuthApiError
 
 from services.supabase_client import supabase, supabase_admin
@@ -11,6 +15,52 @@ router = APIRouter(prefix="/resume", tags=["resume"])
 
 BUCKET = "resumes"
 MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _get_user_from_token(authorization: str):
+    token = authorization.removeprefix("Bearer").strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="No token provided")
+    try:
+        user_response = supabase.auth.get_user(token)
+    except AuthApiError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return user_response.user
+
+
+@router.get("")
+def get_resume(authorization: str = Header(...)):
+    user = _get_user_from_token(authorization)
+    db = supabase_admin or supabase
+    try:
+        result = db.table("resumes").select("*").eq("user_id", user.id).order("created_at", desc=True).execute()
+    except Exception as e:
+        logger.exception(f"[resume/get] DB query failed for user_id: {user.id}, error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch resumes")
+    return {"resumes": result.data}
+
+
+class ExtractTextRequest(BaseModel):
+    url: str
+
+
+@router.post("/extract-text")
+def extract_text(body: ExtractTextRequest, authorization: str = Header(...)):
+    _get_user_from_token(authorization)
+
+    try:
+        response = httpx.get(body.url, follow_redirects=True, timeout=30)
+        response.raise_for_status()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch PDF: {e}")
+
+    try:
+        reader = pypdf.PdfReader(io.BytesIO(response.content))
+        text = "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Failed to extract text from PDF: {e}")
+
+    return {"text": text.strip()}
 
 
 @router.post("/upload")
@@ -24,28 +74,9 @@ async def upload_resume(
         logger.warning(f"[resume/upload] Rejected non-PDF file: {file.filename}")
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
-    raw_token = authorization
-    token = authorization.removeprefix("Bearer").strip()
-    logger.debug(f"[resume/upload] Authorization header received: '{raw_token}'")
-    logger.debug(f"[resume/upload] Extracted token: '{token[:30]}...' (length: {len(token)})")
-
-    if not token:
-        logger.error(f"[resume/upload] Token is empty after stripping 'Bearer' — raw header was: '{raw_token}'")
-        raise HTTPException(status_code=401, detail="No token provided — Authorization header must be 'Bearer <token>'")
-
-    try:
-        logger.debug(f"[resume/upload] Calling supabase.auth.get_user with token: {token}")
-        user_response = supabase.auth.get_user(token)
-        logger.debug(f"[resume/upload] get_user response: {user_response}")
-    except AuthApiError as e:
-        logger.error(f"[resume/upload] AuthApiError validating token — token: {token}, error: {e}")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    except Exception as e:
-        logger.exception(f"[resume/upload] Unexpected error calling get_user — token: {token}, error: {e}")
-        raise HTTPException(status_code=500, detail="Unexpected error validating token")
-
-    user_id = user_response.user.id
-    logger.info(f"[resume/upload] Token valid — user_id: {user_id}, email: {user_response.user.email}")
+    user = _get_user_from_token(authorization)
+    user_id = user.id
+    logger.info(f"[resume/upload] Token valid — user_id: {user_id}, email: {user.email}")
 
     contents = await file.read()
     logger.debug(f"[resume/upload] File read — size: {len(contents)} bytes, limit: {MAX_SIZE_BYTES} bytes")
@@ -70,6 +101,20 @@ async def upload_resume(
         raise HTTPException(status_code=500, detail=f"Storage upload failed: {e}")
 
     public_url = storage_client.storage.from_(BUCKET).get_public_url(storage_path)
+
+    db = supabase_admin or supabase
+    try:
+        result = db.table("resumes").upsert({
+            "user_id": user_id,
+            "filename": file.filename,
+            "storage_path": storage_path,
+            "url": public_url,
+        }, on_conflict="user_id,storage_path").execute()
+        logger.debug(f"[resume/upload] DB record upserted — data: {result.data}")
+    except Exception as e:
+        logger.exception(f"[resume/upload] Failed to upsert DB record — path: {storage_path}, error: {e}")
+        raise HTTPException(status_code=500, detail="Upload succeeded but failed to save record")
+
     logger.info(f"[resume/upload] Success — user_id: {user_id}, path: {storage_path}, url: {public_url}")
 
     return {
