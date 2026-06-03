@@ -15,7 +15,8 @@ Build the core Autoshake MVP components so they can be integrated in later sprin
 ### Start Doing
 | Action | Reason |
 |--------|--------|
-| Establish JSON formatting for objects sent across frontend and backend | Makes later integration smoother |
+| Establish JSON formatting for objects sent across frontend and backend | Makes later integration of systems smoother |
+
 
 ### Keep Doing
 | Action | Reason |

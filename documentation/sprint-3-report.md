@@ -1,164 +1,117 @@
-# Sprint 2 Report — MVP End-to-End (Raw LLM Pipeline)
+# Sprint 3 Report - Integration Foundation
+**Product:** AutoShake AI MVP | **Date:** May 17, 2026
 
-## Sprint Goal
-Deliver a complete working pipeline from Chrome extension → backend → AI → PDF output, enabling users to generate tailored resumes for selected jobs.
+## Retrospective: Start / Stop / Continue
 
----
+### Stop Doing
+| Action | Reason |
+|--------|--------|
+| Extra component features | Integration and MVP is the highest priority now |
 
-# Sprint Timeline
+### Start Doing
+| Action | Reason |
+|--------|--------|
+| Integration | Components need to be integrated to reach MVP |
+
+### Keep Doing
+| Action | Reason |
+|--------|--------|
+| Component-focused implementation | Delivered the GraphQL, ML, backend, and PDF pieces needed for integration |
+
+## Sprint Timeline
 
 | Start Date | End Date |
 |---|---|
-| 04/19 | 05/03 |
+| 05/03/2026 | 05/17/2026 |
 
----
+## Sprint Outcomes
 
-# Sprint Deliverables
+### Completed Deliverables
+- GraphQL interception implemented
+- Employer and job name extraction built
+- Functional extension toggle switch completed
+- ML pipeline connected to Ollama and stabilized
+- Full PDF generation path completed
+- FastAPI endpoint and backend flow finished
 
-- Chrome extension for job selection + resume upload
-- FastAPI backend for request handling
-- LLM-based resume generation pipeline
-- PDF generation + storage system
-- End-to-end functional workflow
+### Incomplete / Continued Work
+- Full job submission UX and list management still needs refinement
+- Authentication and persistent resume storage still pending
+- Structured AI output formatting needs additional work
 
----
+## Velocity
 
-# Sprint Scope
+| Metric | Value |
+|--------|-------|
+| Stories completed | 1 |
+| Sprint days | 14 |
+| Stories/day | 0.07 |
 
-| ID | Task | Status |
-|---|---|---|
-| #EXT-1 | Job scraping + display | ✅ |
-| #EXT-2 | Job selection UI | ✅ |
-| #EXT-3 | Resume upload | ✅ |
-| #BE-1 | API endpoint for job + resume intake | ✅ |
-| #BE-2 | Validation layer (Pydantic) | ✅ |
-| #AI-1 | Resume generation prompt | ✅ |
-| #OUT-1 | PDF generation | ✅ |
-| #OUT-2 | Storage + link return | ✅ |
+## Burnup Chart
 
----
+todo
 
-# Task Breakdown
+## Sprint Deliverables
 
-## Extension — Tyler
+- GraphQL-based job extraction support
+- Employer and job metadata parsing
+- Functional extension toggle and selection flow
+- ML pipeline connected to Ollama
+- PDF generation from LLM output
+- FastAPI backend complete for current MVP needs
 
-### Completed
-- Integrated job scraping flow from Handshake
-- Built multi-select job UI
+## Task Breakdown
 
-### Notes
-- Focused on minimizing friction in the user flow
-- Extension successfully packages selected jobs + resume into backend payload
+### Extension
 
----
+#### Completed
+- Implemented GraphQL interception for job data capture
+- Extracted employer and job name metadata from graphql to show in list
+- Built a functional toggle switch in the extension UI
+- Persisted a job list for selected items
 
-## Backend — Nirav
+#### Notes
+- The extension now tracks clicked jobs more reliably
+- Highest priority work is to connect frontend submission flows to backend processing
 
-### Completed
-- Created a backend endpoint
-- research on api endpoints
+### Backend
 
-### Notes
-- focusing on formatting backend responses
+#### Completed
+- Finished FastAPI implementation for request handling
 
----
+### AI Engine
 
-##  AI Engine — Franklin
+#### Completed
+- Connected the ML pipeline to Ollama for resume tailoring
+- Implemented the resume generation flow through the backend
+- Validated end-to-end output for PDF generation
 
-### Completed
-- Developed initial single-prompt LLM resume tailoring system
-- experimented with prompting and research
+### Output & Storage
 
-### Notes
-- Current system uses raw prompting without multi-agent orchestration
-- Emphasis placed on preserving factual correctness of resume content
+#### Completed
+- Built full PDF generation end-to-end from ML output
+- Ensured PDFs can be generated from the current pipeline outputs
 
----
+## Risks / Concerns
 
-## Output & Storage — Nataniel
+### Resume Quality
+- Tailored resume output quality varies with prompt and data structure
+- Mitigation: add stronger prompt templates and structured formatting rules
 
-### Completed
-- Built text → PDF conversion pipeline
-- Added PDF storage handling
-- Implemented job-to-link mapping return format
+### Authentication Delay
+- No login/auth flow yet means no persistent user storage
+- Mitigation: prioritize login and account pages in the next sprint
 
-### Notes
-- Storage currently supports local architecture
-- PDFs are returned through generated links for frontend consumption
-- focusing on user auth and managing DB
+## Sprint Outcome
 
----
+Sprint 3 established the core integration foundation for Autoshake MVP. The team completed GraphQL interception, metadata extraction, a working toggle switch, ML pipeline connectivity to Ollama, PDF generation, and the FastAPI backend.
 
-# Dependencies
+This sprint proved the core technical flow for generating tailored PDFs from selected jobs and set the stage for Sprint 4, where authentication, tests, and connecting all the components together will be the focus.
 
-| Dependency | Status |
-|---|---|
-| OpenAI API availability | Stable |
-| Chrome extension permissions | Configured |
-| PDF library integration | Functional |
+## Next Focus Areas
 
----
-
-#  Risks / Concerns
-
-## LLM Hallucinations
-- AI may generate unsupported resume claims
-- Mitigation: tighter prompt constraints and validation checks
-
-## PDF Formatting Inconsistencies
-- Layout differences across resume structures
-- Mitigation: standardized formatting templates
-
-## Batch Processing Latency
-- Multiple job requests increase generation time
-- Mitigation: optimize request handling and parallel processing later
-
----
-
-#  Definition of Done
-
-| Requirement | Status |
-|---|---|
-| End-to-end flow works | X |
-| PDFs generated for multiple jobs in sample format| ✅ |
-| Job description displays to frontend | ✅ |
-| Basic testing completed | ✅ |
-
----
-
-#  Testing Notes
-
-## Extension Testing
-- Manual end-to-end extension testing completed
-
-## Backend Testing
-- Validated payload handling and response formatting
-
-## Output Testing
-- Verified PDF generation pipeline
-
----
-
-# Sprint Outcome
-
-Sprint 2 successfully established the individually components required for first fully functional MVP pipeline for automated resume tailoring.
-
-The system now supports:
-1. Selecting jobs from the Chrome extension
-2. Sending requests through FastAPI
-3. Generating tailored resumes using an LLM
-4. Producing downloadable PDF outputs
-
-This sprint validates the core technical feasibility of the platform and establishes the foundation for future improvements including ranking systems, better prompt orchestration, structured resume parsing, and higher-quality formatting.
-
----
-
-#  Next Focus Areas
-
-- Experience strength classification
-- Improved PDF formatting
-- User Auth
-- Job Data Formating and Post-processing
-- Structured resume parsing
-- Better hallucination prevention
-- Enhanced frontend UX
+- Submission button and frontend submit flow
+- Login and create account pages
+- ML pipeline connected to PDF generator with authenticated context
+- Deploy backend to an online server
+- Integration of login, signup, job submission, and resume upload services
