@@ -40,15 +40,12 @@ Build the core Autoshake MVP components so they can be integrated in later sprin
 - Temporary popup toggle switch implemented
 - Job link detection and persistent job list started
 
-### Subtasks Started
+### Completed Subtasks
 - US1.1: Detect when job is clicked
 - US1.2: Jobs are added to a list to be sent to backend
-- US1.4: Jobs are only added when extension is enabled
 - US2.1: Improved prompt templates
-- US5.3: Data sent to ML pipeline
-- US5.4: PDFs generated from ML output
-- US6.1: Backend code hosted on a server
-- US6.2: Backend can communicate with an LLM API
+- US2.2: Structure AI outputs
+- US3.1: Show job list in the extension window
 
 ## Velocity
 

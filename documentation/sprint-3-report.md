@@ -39,11 +39,18 @@
 - Authentication and persistent resume storage still pending
 - Structured AI output formatting needs additional work
 
+### Completed Subtasks
+- US1.3: Parser is fired for each job you click
+- US1.4: Jobs are only added when extension is enabled
+- US2.1: Improved prompt templates
+- US5.4: PDFs generated from ML output
+- US6.2: Backend can communicate with an LLM API
+
 ## Velocity
 
 | Metric | Value |
 |--------|-------|
-| Stories completed | 1 |
+| Stories completed | 1 (US1) |
 | Sprint days | 14 |
 | Stories/day | 0.07 |
 
