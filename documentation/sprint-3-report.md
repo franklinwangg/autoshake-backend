@@ -1,5 +1,5 @@
 # Sprint 3 Report - Integration Foundation
-**Product:** AutoShake AI MVP | **Date:** May 17, 2026
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Date:** May 17, 2026
 
 ## Retrospective: Start / Stop / Continue
 
@@ -42,7 +42,6 @@
 ### Completed Subtasks
 - US1.3: Parser is fired for each job you click
 - US1.4: Jobs are only added when extension is enabled
-- US2.1: Improved prompt templates
 - US5.4: PDFs generated from ML output
 - US6.2: Backend can communicate with an LLM API
 

@@ -1,6 +1,6 @@
 # Sprint 1 Report - Team Formation and Project Definition
 
-**Product:** AutoShake AI MVP | **Date:** April 19, 2026
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Date:** April 19, 2026
 
 ## 
 
@@ -61,9 +61,7 @@
 * US1.1: Detect when job is clicked - extension click handling began
 * US1.4: Jobs are only added when extension is enabled - extension enable-state considered
 * US2.1: Improved prompt templates - prompt/rewrite research initiated
-* US5.3: Data sent to ML pipeline - LLM integration and test data started
 * US5.4: PDFs generated from ML output - PDF module research and implementation started
-* US6.1: Backend code hosted on a server - initial FastAPI setup started
 * US6.2: Backend can communicate with an LLM API - backend architecture designed for LLM calls
 
 ## 

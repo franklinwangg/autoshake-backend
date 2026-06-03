@@ -1,15 +1,15 @@
-# Sprint 2 Plan
-**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Due:** May 3, 2026
+# Sprint 3 Plan
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Due:** May 17, 2026
 
 ## Sprint Goal
-Finish every core component so the extension, backend, ML processing, and PDF output are all implemented.
+Integrate components into an end-to-end flow so selected jobs move from the extension through the backend, AI pipeline, and PDF delivery.
 
 ## Team Roles
 | Member | Role |
 |--------|------|
-| Nataniel Jayaseelan | Scrum Master |
+| Nirav Rawal | Scrum Master |
 | Franklin Wang | Product Owner |
-| Nirav Rawal | Developer |
+| Nataniel Jayaseelan | Developer |
 | Tyler Roth | Developer |
 
 ## User Stories
@@ -22,22 +22,9 @@ Finish every core component so the extension, backend, ML processing, and PDF ou
 
 | Task | Assignee | Hours |
 |------|----------|-------|
-| 1.1 - Detect when job is clicked | Tyler | 1h |
-| 1.2 - Jobs are added to a list to be sent to backend | Tyler | 2h |
 | 1.3 - Parser is fired for each job you click | Tyler | 3h |
 | 1.4 - Jobs are only added when extension is enabled | Tyler | 2h |
-| **Story Total** | | **8h** |
-
-### US2 - As a user, I want the resume outputs to follow a predictable format. (5 sp)
-**Acceptance Criteria:**
-1. Improved prompt templates are implemented.
-2. AI outputs are structured for predictable formatting.
-
-| Task | Assignee | Hours |
-|------|----------|-------|
-| 2.1 - Improved prompt templates | Franklin | 2h |
-| 2.2 - Structure AI outputs | Franklin | 2h |
-| **Story Total** | | **4h** |
+| **Story Total** | | **5h** |
 
 ### US3 - As a user, I want to submit my selected jobs so that they are sent for processing. (3 sp)
 **Acceptance Criteria:**
@@ -47,12 +34,11 @@ Finish every core component so the extension, backend, ML processing, and PDF ou
 
 | Task | Assignee | Hours |
 |------|----------|-------|
-| 3.1 - Show job list in the extension window | Tyler | 2h |
 | 3.2 - Button to submit jobs, clearing the job list | Tyler | 1h |
 | 3.3 - User limits to not use all of our API tokens | Franklin | 3h |
-| **Story Total** | | **6h** |
+| **Story Total** | | **4h** |
 
-### (Partial) US5 - As a user, I want the jobs I've sent in to be processed and returned to me as PDFs. (13 sp)
+### US5 - As a user, I want the jobs I've sent in to be processed and returned to me as PDFs. (13 sp)
 **Acceptance Criteria:**
 1. Backend server exposes an API.
 2. Job data is sent to backend upon submitting jobs.
@@ -67,12 +53,22 @@ Finish every core component so the extension, backend, ML processing, and PDF ou
 | 5.4 - PDFs generated from ML output | Nataniel | 5h |
 | **Story Total** | | **13h** |
 
+### US6 - As a user, I want to be able to send the jobs to a functional backend server. (8 sp))
+**Acceptance Criteria:**
+1. Backend remains hosted and reachable.
+2. Backend communicates reliably with the LLM API.
 
-## Total committed: 31h
+| Task | Assignee | Hours |
+|------|----------|-------|
+| 6.1 - Backend code hosted on a server | Franklin | 5h |
+| 6.2 - Backend can communicate with an LLM API | Franklin | 2h |
+| **Story Total** | | **7h** |
+
+## Total committed: 29h
 
 ## Scrum Schedule
 | Day | Time | Type |
 |-----|------|------|
-| Saturday | 8:00 PM | Team Meeting |
+| Sunday | 8:00 PM | Team Meeting |
 | Tuesday | 8:00 AM | Team Meeting |
 | Thursday | 2:00 PM | TA Meeting |

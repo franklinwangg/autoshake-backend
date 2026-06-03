@@ -1,5 +1,5 @@
 ﻿# Sprint 4 Report - MVP Completion and Service Integration
-**Product:** AutoShake AI MVP | **Date:** May 31, 2026
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Date:** May 31, 2026
 
 ## Retrospective: Start / Stop / Continue
 
@@ -32,7 +32,6 @@
 - Integration work completed for login, signup, resume upload, and service orchestration
 
 ### Story Progress
-- US2: As a user, I want the resume outputs to follow a predictable format — completed, with prompt and pipeline improvements toward more consistent formatting
 - US3: As a user, I want to submit my selected jobs so that they are sent for processing — completed, with submission button, list clearing, and backend posting implemented
 - US4: As a user, I want to be able to create an account and log in to have persistent resume data — completed, with login and create account pages connected to backend flows
 - US5: As a user, I want the jobs I've sent in to be processed and returned to me as PDFs — completed, with ML pipeline connected to PDF output and downloadable resume generation
@@ -42,9 +41,9 @@
 
 | Metric | Value |
 |--------|-------|
-| Stories completed | 5 |
+| Stories completed | 4 |
 | Sprint days | 14 |
-| Stories/day | 0.5 |
+| Stories/day | 0.27 |
 
 ## Burnup Chart
 

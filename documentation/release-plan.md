@@ -1,6 +1,6 @@
 # Release Plan: MVP (Fully Connected Resume Generator)
 
-**Product:** AutoShake AI MVP | **Release:** v1.0 | **Release Date:** June 03, 2026 | **Rev:** 1.0 | **Rev Date:** June 02, 2026
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Release:** v1.0 | **Release Date:** June 03, 2026
 
 ## 
 
@@ -31,10 +31,10 @@
 |US3|As a user, I want to submit my selected jobs so that they are sent for processing.|3|High|1|
 |US4|As a user, I want to be able to create an account and log in to have persistent resume data.|8|High|2|
 |US5|As a user, I want the jobs I've sent in to be processed and returned to me as PDFs.|13|High|2|
-|US6|As a user, I want to be able send the jobs to a functional backend server.|5|High|1|
+|US6|As a user, I want to be able send the jobs to a functional backend server.|8|High|1|
 |US7|As a user, I want to be able to download the extension online.|3|Medium|2|
 
-**Total story points:** 45 | **Team velocity estimate:** 12 pts/sprint | **Sprints needed:** \~4
+**Total story points:** 48 | **Team velocity estimate:** 12 pts/sprint | **Sprints needed:** \~4
 
 ## 
 

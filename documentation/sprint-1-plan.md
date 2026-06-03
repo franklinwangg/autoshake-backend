@@ -1,5 +1,5 @@
 # Sprint 1 Plan
-**Product:** AutoShake AI MVP  | **Due:** April 19, 2026
+**Product:** AutoShake AI MVP  | **Team:** AutoShake Team | **Due:** April 19, 2026
 
 ## Sprint Goal
 Form the team, validate core technologies, and define the architecture for the Chrome extension, backend, AI pipeline, and PDF output.

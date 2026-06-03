@@ -1,5 +1,5 @@
 # Sprint 2 Report - MVP Components
-**Product:** AutoShake AI MVP | **Date:** May 03, 2026
+**Product:** AutoShake AI MVP | **Team:** AutoShake Team | **Date:** May 03, 2026
 
 ## Sprint Goal
 Build the core Autoshake MVP components so they can be integrated in later sprints: extension job selection, backend API, AI resume generation, and PDF output.
@@ -40,6 +40,9 @@ Build the core Autoshake MVP components so they can be integrated in later sprin
 - Temporary popup toggle switch implemented
 - Job link detection and persistent job list started
 
+### Completed Stories
+- US2: As a user, I want the resume outputs to follow a predictable format — completed, with prompt and pipeline improvements toward more consistent formatting
+
 ### Completed Subtasks
 - US1.1: Detect when job is clicked
 - US1.2: Jobs are added to a list to be sent to backend
@@ -51,9 +54,9 @@ Build the core Autoshake MVP components so they can be integrated in later sprin
 
 | Metric | Value |
 |--------|-------|
-| Stories completed | 0 |
+| Stories completed | 1 |
 | Sprint days | 14 |
-| Stories/day | 0.0 |
+| Stories/day | 0.07 |
 
 ## Burnup Chart
 
