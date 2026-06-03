@@ -86,7 +86,7 @@ No burnup chart for this sprint
 
 ### 
 
-### Extension - Tyler
+### Extension
 
 #### Completed
 
@@ -100,7 +100,7 @@ No burnup chart for this sprint
 
 ### 
 
-### Backend - Nirav
+### Backend
 
 #### Completed
 
@@ -109,7 +109,7 @@ No burnup chart for this sprint
 
 ### 
 
-### AI Engine - Franklin
+### AI Engine
 
 #### Completed
 
@@ -119,7 +119,7 @@ No burnup chart for this sprint
 
 ### 
 
-### Output \& Storage - Nataniel
+### Output \& Storage
 
 #### Completed
 
