@@ -3,6 +3,11 @@
 
 ## Retrospective: Start / Stop / Continue
 
+### Stop Doing
+| Action | Reason |
+|--------|--------|
+| Extra component features | Integration and MVP is the highest priority now |
+
 ### Start Doing
 | Action | Reason |
 |--------|--------|
@@ -12,7 +17,8 @@
 ### Keep Doing
 | Action | Reason |
 |--------|--------|
-| Bugfixing | Improve the final user experience for the MVP |
+| Manual Testing | Discover program defects and potential improvements |
+| Bugfixing | Make the final user experience for the MVP seamless |
 
 ## Sprint Timeline
 
@@ -35,7 +41,10 @@
 - US3: As a user, I want to submit my selected jobs so that they are sent for processing — completed, with submission button, list clearing, and backend posting implemented
 - US4: As a user, I want to be able to create an account and log in to have persistent resume data — completed, with login and create account pages connected to backend flows
 - US5: As a user, I want the jobs I've sent in to be processed and returned to me as PDFs — completed, with ML pipeline connected to PDF output and downloadable resume generation
-- US6: As a user, I want to be able to send the jobs to a functional backend server — completed, with backend hosted and communicating with the ML service through deployment infra
+- US6: As a user, I want to be able to send the jobs to a functional backend server — completed, with backend hosted and communicating with the ML service through deployment infrastructure
+
+### Incomplete
+- US7: As a user, I want to be able to download the extension online — not completed, extension distribution and online install flow remain outstanding
 
 ## Velocity
 

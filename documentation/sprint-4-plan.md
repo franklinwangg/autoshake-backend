@@ -58,7 +58,7 @@ Add authentication and persistent user context while finishing final integration
 | 5.3 - Data Sent to ML pipeline | Nirav/Franklin | 3h |
 | **Story Total** | | **8h** |
 
-### US6 - As a user, I want to be able send the jobs to a functional backend server. (5 sp)
+### US6 - As a user, I want to be able send the jobs to a functional backend server. (8 sp)
 **Acceptance Criteria:**
 1. Backend code is hosted on a server.
 2. Backend can communicate with an LLM API.
@@ -69,7 +69,15 @@ Add authentication and persistent user context while finishing final integration
 | 6.2 - Backend can communicate with an LLM API | Franklin | 2h |
 | **Story Total** | | **8h** |
 
-## Total committed: 34h
+### US7 - As a user, I want to be able to download the extension online. (3 sp)
+**Acceptance Criteria:**
+1. Extension packaging is ready for distribution.
+2. An online download source is available.
+3. Users can install the extension from that source.
+
+**Story Total:** **5h**
+
+## Total committed: 39h
 
 ## Scrum Schedule
 | Day | Time | Type |
