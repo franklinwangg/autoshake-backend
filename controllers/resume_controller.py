@@ -1,4 +1,5 @@
 import io
+import json
 import logging
 
 import httpx
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 from supabase_auth.errors import AuthApiError
 
 from services.supabase_client import supabase, supabase_admin
+from services.tailored_resume_generation.ml_pipeline.integrations.llm import call_llm
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,85 @@ def extract_text(body: ExtractTextRequest, authorization: str = Header(...)):
         raise HTTPException(status_code=422, detail=f"Failed to extract text from PDF: {e}")
 
     return {"text": text.strip()}
+
+
+class ParseResumeRequest(BaseModel):
+    text: str
+
+
+@router.post("/parse-resume")
+def parse_resume(body: ParseResumeRequest, authorization: str = Header(...)):
+    _get_user_from_token(authorization)
+
+    if not body.text.strip():
+        raise HTTPException(status_code=400, detail="text must not be empty")
+
+    prompt = f"""You are a resume parser. Extract structured information from the resume text below and return it as a single valid JSON object. Return ONLY the JSON with no explanation, markdown, or code fences.
+
+The JSON must follow this exact schema:
+{{
+  "basics": {{
+    "name": "string (required)",
+    "email": "string (required)",
+    "headline": "string",
+    "phone": "string",
+    "location": {{ "city": "string", "state": "string" }},
+    "links": {{ "linkedin": "string", "github": "string", "website": "string" }},
+    "summary": "string"
+  }},
+  "education": [{{
+    "institution": "string (required)",
+    "degree": "string (required)",
+    "field": "string (required)",
+    "startDate": "YYYY-MM (required)",
+    "endDate": "YYYY-MM (required)",
+    "gpa": "string",
+    "honors": ["string"],
+    "coursework": ["string"]
+  }}],
+  "experience": [{{
+    "company": "string (required)",
+    "position": "string (required)",
+    "startDate": "YYYY-MM (required)",
+    "endDate": "YYYY-MM or Present (required)",
+    "location": "string",
+    "bullets": ["string (required, min 1)"]
+  }}],
+  "projects": [{{
+    "name": "string (required)",
+    "bullets": ["string (required, min 1)"],
+    "date": "YYYY or YYYY-MM",
+    "description": "string",
+    "technologies": ["string"]
+  }}],
+  "skills": [{{
+    "category": "string (required)",
+    "items": ["string (required, min 1)"]
+  }}]
+}}
+
+Omit any optional field if the information is not present in the resume. Do not invent information.
+
+Resume text:
+{body.text}"""
+
+    try:
+        raw = call_llm(prompt, max_tokens=2048)
+        print("PARSE RESUME LLM RAW OUTPUT:", raw)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM call failed: {e}")
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        # Strip markdown code fences if the model wrapped the JSON anyway
+        cleaned = raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        try:
+            parsed = json.loads(cleaned)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail=f"LLM returned invalid JSON: {raw}")
+
+    return parsed
 
 
 @router.post("/upload")
