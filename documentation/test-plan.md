@@ -1,6 +1,7 @@
-# Test Plan | AutoShake AI 
+# Test Plan and Report
+**Product:** Autoshake AI MVP
 
-## Test Scenarios
+## System Test Scenarios
 
 ### Scenario 1: GraphQL Parsing
 **Given** a GraphQL packet from Handshake containing a `data.job.id` field
