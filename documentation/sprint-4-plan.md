@@ -74,9 +74,8 @@ Add authentication and persistent user context while finishing final integration
 
 |Task|Assignee|Hours|
 |-|-|-|
-|5.1 - Backend server has an API|Nirav/Franklin|5h|
 |5.3 - Data Sent to ML pipeline|Nirav/Franklin|3h|
-|**Story Total**||**8h**|
+|**Story Total**||**3h**|
 
 ### 
 
@@ -90,8 +89,7 @@ Add authentication and persistent user context while finishing final integration
 |Task|Assignee|Hours|
 |-|-|-|
 |6.1 - Backend code hosted on a server|Franklin|6h|
-|6.2 - Backend can communicate with an LLM API|Franklin|2h|
-|**Story Total**||**8h**|
+|**Story Total**||**6h**|
 
 ### 
 
@@ -107,7 +105,7 @@ Add authentication and persistent user context while finishing final integration
 
 ## 
 
-## Total committed: 39h
+## Total committed: 32h
 
 ## 
 

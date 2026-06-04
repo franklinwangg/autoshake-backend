@@ -63,6 +63,7 @@
 
 * US1.3: Parser is fired for each job you click
 * US1.4: Jobs are only added when extension is enabled
+* US5.1: Backend server has an API
 * US5.4: PDFs generated from ML output
 * US6.2: Backend can communicate with an LLM API
 
@@ -80,7 +81,7 @@
 
 ## Burnup Chart
 
-todo
+![Burnup Chart](sprint-3-burnup-chart.png)
 
 ## 
 

@@ -81,7 +81,7 @@
 
 ## Burnup Chart
 
-todo
+![Burnup Chart](sprint-4-burnup-chart.png)
 
 ## 
 
