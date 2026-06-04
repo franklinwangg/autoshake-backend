@@ -87,7 +87,7 @@ Build the core Autoshake MVP components so they can be integrated in later sprin
 
 ## Burnup Chart
 
-todo
+![Burnup Chart](sprint-2-burnup-chart.png)
 
 ## 
 
