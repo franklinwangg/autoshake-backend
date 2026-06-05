@@ -40,6 +40,10 @@ export interface StoreJobResponse {
 	error?: string;
 }
 
+export interface ParsedGraphQLData {
+	[key: string]: unknown;
+}
+
 export interface AutoshakeGraphqlMessage {
 	type: "AUTOSHAKE_GRAPHQL_RESPONSE";
 	jobId: string;
