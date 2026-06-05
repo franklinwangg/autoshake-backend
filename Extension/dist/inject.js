@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  // popupUtils.ts
+  // scripts/popupUtils.ts
   var IsObject = (value) => value !== null && typeof value === "object";
   var NormalizeId = (value) => {
     if (typeof value === "string" && /^\d+$/.test(value)) return value;
@@ -41,7 +41,7 @@
     return null;
   };
 
-  // inject.ts
+  // scripts/inject.ts
   var GRAPHQL_RESPONSE_MESSAGE = "AUTOSHAKE_GRAPHQL_RESPONSE";
   InitializeAutoShake();
   function InitializeAutoShake() {

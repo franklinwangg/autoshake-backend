@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  // content.ts
+  // scripts/content.ts
   var CURRENT_URL = window.location.href;
   var CURRENT_DOMAIN = window.location.hostname;
   var TARGET_WEBSITE = "handshake.com";
