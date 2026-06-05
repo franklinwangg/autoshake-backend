@@ -1,5 +1,6 @@
 import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphQLData } from './types';
 import { GetRelativeTime, ExtractJobField, IsObject } from './popupUtils';
+import { Logout } from './api';
 
 // Compile-time debug flag for GraphQL view
 declare const DEBUG_GRAPHQL_VIEW: boolean;
@@ -10,7 +11,7 @@ let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
 
-export function SetupMainPopup(): void {
+export function SetupMainPopup(showAuthView: () => void): void {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
@@ -19,10 +20,10 @@ export function SetupMainPopup(): void {
 	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 
-	AttachMainPopupListeners();
+	AttachMainPopupListeners(showAuthView);
 }
 
-function AttachMainPopupListeners(): void {
+function AttachMainPopupListeners(showAuthView: () => void): void {
 	if (toggle) {
 		toggle.addEventListener('change', () => {
 			const isOn: boolean = toggle!.checked;
@@ -44,19 +45,44 @@ function AttachMainPopupListeners(): void {
 	}
 
 	submitButton?.addEventListener('click', SubmitJobList);
+
+	const logoutButton = document.getElementById('logoutButton');
+	logoutButton?.addEventListener('click', () => HandleLogout(showAuthView));
 }
 
 export function ResetMainPopup(): void {
-	DisplayUsername();
+	DisplayEmail();
 	RefreshMainView();
 }
 
-function DisplayUsername(): void {
-	chrome.storage.local.get(['username'], (result: StorageResult) => {
-		const usernameDisplay = document.getElementById('usernameDisplay');
-		if (usernameDisplay && result.username) {
-			usernameDisplay.innerHTML = `<span class="label">Logged in as</span>${result.username}`;
+function DisplayEmail(): void {
+	chrome.storage.local.get(['email'], (result: StorageResult) => {
+		const emailDisplay = document.getElementById('emailDisplay');
+		if (emailDisplay && result.email) {
+			emailDisplay.innerHTML = `<span class="label">Logged in as</span>${result.email}`;
 		}
+	});
+}
+
+async function HandleLogout(showAuthView: () => void): Promise<void> {
+	const authToken = await GetAuthToken();
+
+	if (authToken) {
+		Logout(authToken).catch((error: unknown) => {
+			console.warn('Logout API call failed, clearing local session anyway:', error);
+		});
+	}
+
+	chrome.storage.local.remove(['authToken', 'email'], () => {
+		showAuthView();
+	});
+}
+
+function GetAuthToken(): Promise<string | undefined> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
+			resolve(result.authToken);
+		});
 	});
 }
 

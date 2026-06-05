@@ -1,71 +1,171 @@
 "use strict";
 (() => {
+  // scripts/apiConstants.ts
+  var API_BASE_URL = "https://autoshake-production.up.railway.app";
+  var API_ENDPOINTS = {
+    SIGNUP: "/auth/signup",
+    LOGIN: "/auth/login",
+    LOGOUT: "/auth/logout",
+    GET_PROFILE: "/user/profile",
+    UPDATE_PROFILE: "/user/profile",
+    UPLOAD_RESUME: "/resume/upload",
+    GET_RESUME: "/resume",
+    EXTRACT_RESUME_TEXT: "/resume/extract-text",
+    PARSE_RESUME: "/resume/parse-resume",
+    DELETE_RESUME: "/resume",
+    SUBMIT_JOBS: "/jobs",
+    GET_JOBS: "/jobs",
+    GET_JOB: (jobId) => `/jobs/${jobId}`,
+    DELETE_JOB: (jobId) => `/jobs/${jobId}`,
+    GENERATE_RESUME: (jobId) => `/jobs/${jobId}/generate`,
+    GET_GENERATED_RESUME: (jobId) => `/jobs/${jobId}/resume`,
+    BATCH_GENERATE: "/generate/batch",
+    EXTRACT_SKILLS: "/extract-skills",
+    GENERATE_RESUME_PIPELINE: "/generate-resume",
+    GET_TEMPLATES: "/templates",
+    HEALTH: "/health"
+  };
+
+  // scripts/api.ts
+  function BuildApiError(response, body) {
+    const parseMessage = (value) => {
+      if (typeof value === "string") return value;
+      if (Array.isArray(value)) {
+        return value.map(parseMessage).filter(Boolean).join("; ");
+      }
+      if (typeof value === "object" && value !== null) {
+        const errorObject = value;
+        if (typeof errorObject.msg === "string") return errorObject.msg;
+        if (typeof errorObject.detail === "string") return errorObject.detail;
+        if (typeof errorObject.message === "string") return errorObject.message;
+        return Object.values(errorObject).map(parseMessage).filter(Boolean).join("; ");
+      }
+      return void 0;
+    };
+    let message;
+    try {
+      const parsed = JSON.parse(body);
+      message = parseMessage(parsed) ?? (body || `Request failed with status ${response.status}`);
+    } catch {
+      message = body || `Request failed with status ${response.status}`;
+    }
+    return { status: response.status, message };
+  }
+  async function Login(email, password) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
+  async function Signup(email, password) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SIGNUP}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
+  async function Logout(authToken) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+  }
+
   // scripts/popupAuth.ts
   function SetupAuth(callbacks) {
-    const { showMainView, showLoginView, showAuthView } = callbacks;
+    const { showMainView, showLoginView } = callbacks;
     const loginButton = document.getElementById("loginButton");
-    loginButton?.addEventListener("click", HandleLogin);
-    const logoutButton = document.getElementById("logoutButton");
-    logoutButton?.addEventListener("click", HandleLogout);
+    loginButton?.addEventListener("click", () => HandleLogin(showMainView));
     const createAccountButton = document.getElementById("createAccountButton");
-    createAccountButton?.addEventListener("click", HandleCreateAccount);
+    createAccountButton?.addEventListener("click", () => HandleCreateAccount(showLoginView));
     const passwordInput = document.getElementById("passwordInput");
     passwordInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") HandleLogin();
+      if (event.key === "Enter") HandleLogin(showMainView);
     });
     const confirmPasswordInput = document.getElementById("confirmPasswordInput");
     confirmPasswordInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") HandleCreateAccount();
+      if (event.key === "Enter") HandleCreateAccount(showLoginView);
     });
-    function HandleLogin() {
-      const usernameInput = document.getElementById("usernameInput");
-      const passwordInput2 = document.getElementById("passwordInput");
-      const loginError = document.getElementById("loginError");
-      const username = usernameInput?.value.trim() ?? "";
-      const password = passwordInput2?.value ?? "";
-      if (loginError) loginError.textContent = "";
-      if (!username || !password) {
-        if (loginError) loginError.textContent = "Please enter a username and password.";
-        return;
-      }
-      chrome.storage.local.set({ username }, () => {
-        if (usernameInput) usernameInput.value = "";
-        if (passwordInput2) passwordInput2.value = "";
-        showMainView();
-      });
+  }
+  async function HandleLogin(onSuccess) {
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const email = emailInput?.value.trim() ?? "";
+    const password = passwordInput?.value ?? "";
+    if (loginError) loginError.textContent = "";
+    if (!email || !password) {
+      if (loginError) loginError.textContent = "Please enter an email and password.";
+      return;
     }
-    function HandleCreateAccount() {
-      const createUsernameInput = document.getElementById("createUsernameInput");
-      const createPasswordInput = document.getElementById("createPasswordInput");
-      const confirmPasswordInput2 = document.getElementById("confirmPasswordInput");
-      const createAccountError = document.getElementById("createAccountError");
-      const username = createUsernameInput?.value.trim() ?? "";
-      const password = createPasswordInput?.value ?? "";
-      const confirmPassword = confirmPasswordInput2?.value ?? "";
-      if (createAccountError) createAccountError.textContent = "";
-      if (!username || !password || !confirmPassword) {
-        if (createAccountError) createAccountError.textContent = "Please fill in all fields.";
-        return;
-      }
-      if (password !== confirmPassword) {
-        if (createAccountError) createAccountError.textContent = "Passwords do not match.";
-        return;
-      }
-      ResetCreateAccountView();
-      showLoginView();
-    }
-    function HandleLogout() {
-      chrome.storage.local.set({ username: "" }, () => {
-        showAuthView();
+    const loginButton = document.getElementById("loginButton");
+    if (loginButton) loginButton.disabled = true;
+    try {
+      const response = await Login(email, password);
+      chrome.storage.local.set({ email, authToken: response.access_token }, () => {
+        if (emailInput) emailInput.value = "";
+        if (passwordInput) passwordInput.value = "";
+        onSuccess();
       });
+    } catch (error) {
+      if (loginError) loginError.textContent = error.message || "Login failed. Please try again.";
+    } finally {
+      if (loginButton) loginButton.disabled = false;
     }
   }
-  function ResetCreateAccountView() {
-    const createUsernameInput = document.getElementById("createUsernameInput");
+  async function HandleCreateAccount(onSuccess) {
+    const createEmailInput = document.getElementById("createEmailInput");
     const createPasswordInput = document.getElementById("createPasswordInput");
     const confirmPasswordInput = document.getElementById("confirmPasswordInput");
     const createAccountError = document.getElementById("createAccountError");
-    if (createUsernameInput) createUsernameInput.value = "";
+    const email = createEmailInput?.value.trim() ?? "";
+    const password = createPasswordInput?.value ?? "";
+    const confirmPassword = confirmPasswordInput?.value ?? "";
+    if (createAccountError) createAccountError.textContent = "";
+    if (!email || !password || !confirmPassword) {
+      if (createAccountError) createAccountError.textContent = "Please fill in all fields.";
+      return;
+    }
+    if (password !== confirmPassword) {
+      if (createAccountError) createAccountError.textContent = "Passwords do not match.";
+      return;
+    }
+    const createAccountButton = document.getElementById("createAccountButton");
+    if (createAccountButton) createAccountButton.disabled = true;
+    try {
+      await Signup(email, password);
+      ResetCreateAccountView();
+      onSuccess();
+    } catch (error) {
+      if (createAccountError) createAccountError.textContent = error.message || "Account creation failed. Please try again.";
+    } finally {
+      if (createAccountButton) createAccountButton.disabled = false;
+    }
+  }
+  function ResetCreateAccountView() {
+    const createEmailInput = document.getElementById("createEmailInput");
+    const createPasswordInput = document.getElementById("createPasswordInput");
+    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+    const createAccountError = document.getElementById("createAccountError");
+    if (createEmailInput) createEmailInput.value = "";
     if (createPasswordInput) createPasswordInput.value = "";
     if (confirmPasswordInput) confirmPasswordInput.value = "";
     if (createAccountError) createAccountError.textContent = "";
@@ -134,7 +234,7 @@
   var stateText = null;
   var jobList = null;
   var submitButton = null;
-  function SetupMainPopup() {
+  function SetupMainPopup(showAuthView) {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
@@ -142,9 +242,9 @@
       graphqlToggleButton = document.getElementById("toggleGraphQL");
     }
     submitButton = document.getElementById("submitButton");
-    AttachMainPopupListeners();
+    AttachMainPopupListeners(showAuthView);
   }
-  function AttachMainPopupListeners() {
+  function AttachMainPopupListeners(showAuthView) {
     if (toggle) {
       toggle.addEventListener("change", () => {
         const isOn = toggle.checked;
@@ -163,17 +263,37 @@
       });
     }
     submitButton?.addEventListener("click", SubmitJobList);
+    const logoutButton = document.getElementById("logoutButton");
+    logoutButton?.addEventListener("click", () => HandleLogout(showAuthView));
   }
   function ResetMainPopup() {
-    DisplayUsername();
+    DisplayEmail();
     RefreshMainView();
   }
-  function DisplayUsername() {
-    chrome.storage.local.get(["username"], (result) => {
-      const usernameDisplay = document.getElementById("usernameDisplay");
-      if (usernameDisplay && result.username) {
-        usernameDisplay.innerHTML = `<span class="label">Logged in as</span>${result.username}`;
+  function DisplayEmail() {
+    chrome.storage.local.get(["email"], (result) => {
+      const emailDisplay = document.getElementById("emailDisplay");
+      if (emailDisplay && result.email) {
+        emailDisplay.innerHTML = `<span class="label">Logged in as</span>${result.email}`;
       }
+    });
+  }
+  async function HandleLogout(showAuthView) {
+    const authToken = await GetAuthToken();
+    if (authToken) {
+      Logout(authToken).catch((error) => {
+        console.warn("Logout API call failed, clearing local session anyway:", error);
+      });
+    }
+    chrome.storage.local.remove(["authToken", "email"], () => {
+      showAuthView();
+    });
+  }
+  function GetAuthToken() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["authToken"], (result) => {
+        resolve(result.authToken);
+      });
     });
   }
   function RefreshMainView() {
@@ -328,12 +448,11 @@
     signupTab?.addEventListener("click", ShowSignupPanel);
     SetupAuth({
       showMainView: ShowMainView,
-      showLoginView: ShowLoginPanel,
-      showAuthView: ShowAuthView
+      showLoginView: ShowLoginPanel
     });
-    SetupMainPopup();
-    chrome.storage.local.get(["username"], (result) => {
-      if (result.username) {
+    SetupMainPopup(ShowAuthView);
+    chrome.storage.local.get(["authToken"], (result) => {
+      if (result.authToken) {
         ShowMainView();
       } else {
         ShowAuthView();

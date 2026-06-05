@@ -1,93 +1,105 @@
-﻿interface AuthCallbacks {
+import { Login, Signup } from './api';
+
+interface AuthCallbacks {
 	showMainView: () => void;
 	showLoginView: () => void;
-	showAuthView: () => void;
 }
 
 export function SetupAuth(callbacks: AuthCallbacks): void {
-	const { showMainView, showLoginView, showAuthView } = callbacks;
+	const { showMainView, showLoginView } = callbacks;
 
 	const loginButton = document.getElementById('loginButton');
-	loginButton?.addEventListener('click', HandleLogin);
-
-	const logoutButton = document.getElementById('logoutButton');
-	logoutButton?.addEventListener('click', HandleLogout);
+	loginButton?.addEventListener('click', () => HandleLogin(showMainView));
 
 	const createAccountButton = document.getElementById('createAccountButton');
-	createAccountButton?.addEventListener('click', HandleCreateAccount);
+	createAccountButton?.addEventListener('click', () => HandleCreateAccount(showLoginView));
 
 	const passwordInput = document.getElementById('passwordInput') as HTMLInputElement | null;
 	passwordInput?.addEventListener('keydown', (event: KeyboardEvent) => {
-		if (event.key === 'Enter') HandleLogin();
+		if (event.key === 'Enter') HandleLogin(showMainView);
 	});
 
 	const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement | null;
 	confirmPasswordInput?.addEventListener('keydown', (event: KeyboardEvent) => {
-		if (event.key === 'Enter') HandleCreateAccount();
+		if (event.key === 'Enter') HandleCreateAccount(showLoginView);
 	});
+}
 
-	function HandleLogin(): void {
-		const usernameInput = document.getElementById('usernameInput') as HTMLInputElement | null;
-		const passwordInput = document.getElementById('passwordInput') as HTMLInputElement | null;
-		const loginError = document.getElementById('loginError');
+async function HandleLogin(onSuccess: () => void): Promise<void> {
+	const emailInput = document.getElementById('emailInput') as HTMLInputElement | null;
+	const passwordInput = document.getElementById('passwordInput') as HTMLInputElement | null;
+	const loginError = document.getElementById('loginError');
 
-		const username = usernameInput?.value.trim() ?? '';
-		const password = passwordInput?.value ?? '';
+	const email = emailInput?.value.trim() ?? '';
+	const password = passwordInput?.value ?? '';
 
-		if (loginError) loginError.textContent = '';
+	if (loginError) loginError.textContent = '';
 
-		if (!username || !password) {
-			if (loginError) loginError.textContent = 'Please enter a username and password.';
-			return;
-		}
+	if (!email || !password) {
+		if (loginError) loginError.textContent = 'Please enter an email and password.';
+		return;
+	}
 
-		chrome.storage.local.set({ username }, () => {
-			if (usernameInput) usernameInput.value = '';
+	const loginButton = document.getElementById('loginButton') as HTMLButtonElement | null;
+	if (loginButton) loginButton.disabled = true;
+
+	try {
+		const response = await Login(email, password);
+		chrome.storage.local.set({ email, authToken: response.access_token }, () => {
+			if (emailInput) emailInput.value = '';
 			if (passwordInput) passwordInput.value = '';
-			showMainView();
+			onSuccess();
 		});
-	}
-
-	function HandleCreateAccount(): void {
-		const createUsernameInput = document.getElementById('createUsernameInput') as HTMLInputElement | null;
-		const createPasswordInput = document.getElementById('createPasswordInput') as HTMLInputElement | null;
-		const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement | null;
-		const createAccountError = document.getElementById('createAccountError');
-
-		const username = createUsernameInput?.value.trim() ?? '';
-		const password = createPasswordInput?.value ?? '';
-		const confirmPassword = confirmPasswordInput?.value ?? '';
-
-		if (createAccountError) createAccountError.textContent = '';
-
-		if (!username || !password || !confirmPassword) {
-			if (createAccountError) createAccountError.textContent = 'Please fill in all fields.';
-			return;
-		}
-
-		if (password !== confirmPassword) {
-			if (createAccountError) createAccountError.textContent = 'Passwords do not match.';
-			return;
-		}
-
-		ResetCreateAccountView();
-		showLoginView();
-	}
-
-	function HandleLogout(): void {
-		chrome.storage.local.set({ username: '' }, () => {
-			showAuthView();
-		});
+	} catch (error: any) {
+		if (loginError) loginError.textContent = error.message || 'Login failed. Please try again.';
+	} finally {
+		if (loginButton) loginButton.disabled = false;
 	}
 }
 
-export function ResetCreateAccountView(): void {
-	const createUsernameInput = document.getElementById('createUsernameInput') as HTMLInputElement | null;
+async function HandleCreateAccount(onSuccess: () => void): Promise<void> {
+	const createEmailInput = document.getElementById('createEmailInput') as HTMLInputElement | null;
 	const createPasswordInput = document.getElementById('createPasswordInput') as HTMLInputElement | null;
 	const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement | null;
 	const createAccountError = document.getElementById('createAccountError');
 
-	if (createUsernameInput) createUsernameInput.value = '';
+	const email = createEmailInput?.value.trim() ?? '';
+	const password = createPasswordInput?.value ?? '';
+	const confirmPassword = confirmPasswordInput?.value ?? '';
+
+	if (createAccountError) createAccountError.textContent = '';
+
+	if (!email || !password || !confirmPassword) {
+		if (createAccountError) createAccountError.textContent = 'Please fill in all fields.';
+		return;
+	}
+
+	if (password !== confirmPassword) {
+		if (createAccountError) createAccountError.textContent = 'Passwords do not match.';
+		return;
+	}
+
+	const createAccountButton = document.getElementById('createAccountButton') as HTMLButtonElement | null;
+	if (createAccountButton) createAccountButton.disabled = true;
+
+	try {
+		await Signup(email, password);
+		ResetCreateAccountView();
+		onSuccess();
+	} catch (error: any) {
+		if (createAccountError) createAccountError.textContent = error.message || 'Account creation failed. Please try again.';
+	} finally {
+		if (createAccountButton) createAccountButton.disabled = false;
+	}
+}
+
+export function ResetCreateAccountView(): void {
+	const createEmailInput = document.getElementById('createEmailInput') as HTMLInputElement | null;
+	const createPasswordInput = document.getElementById('createPasswordInput') as HTMLInputElement | null;
+	const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement | null;
+	const createAccountError = document.getElementById('createAccountError');
+
+	if (createEmailInput) createEmailInput.value = '';
 	if (createPasswordInput) createPasswordInput.value = '';
 	if (confirmPasswordInput) confirmPasswordInput.value = '';
 	if (createAccountError) createAccountError.textContent = '';

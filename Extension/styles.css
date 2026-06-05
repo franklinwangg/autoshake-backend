@@ -365,14 +365,14 @@ input:checked + .slider:before {
 	color: white;
 }
 
-#usernameDisplay {
+#emailDisplay {
 	color: #1B2A4A;
 	font-size: 14px;
 	font-weight: 600;
 	text-align: center;
 }
 
-#usernameDisplay .label {
+#emailDisplay .label {
 	color: #999;
 	font-weight: 400;
 	font-size: 12px;

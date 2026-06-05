@@ -38,13 +38,12 @@ function SetupPopupRoot(): void {
 	SetupAuth({
 		showMainView: ShowMainView,
 		showLoginView: ShowLoginPanel,
-		showAuthView: ShowAuthView,
 	});
 
-	SetupMainPopup();
+	SetupMainPopup(ShowAuthView);
 
-	chrome.storage.local.get(['username'], (result: StorageResult) => {
-		if (result.username) {
+	chrome.storage.local.get(['authToken'], (result: StorageResult) => {
+		if (result.authToken) {
 			ShowMainView();
 		} else {
 			ShowAuthView();
