@@ -27,30 +27,6 @@
   };
 
   // scripts/api.ts
-  function BuildApiError(response, body) {
-    const parseMessage = (value) => {
-      if (typeof value === "string") return value;
-      if (Array.isArray(value)) {
-        return value.map(parseMessage).filter(Boolean).join("; ");
-      }
-      if (typeof value === "object" && value !== null) {
-        const errorObject = value;
-        if (typeof errorObject.msg === "string") return errorObject.msg;
-        if (typeof errorObject.detail === "string") return errorObject.detail;
-        if (typeof errorObject.message === "string") return errorObject.message;
-        return Object.values(errorObject).map(parseMessage).filter(Boolean).join("; ");
-      }
-      return void 0;
-    };
-    let message;
-    try {
-      const parsed = JSON.parse(body);
-      message = parseMessage(parsed) ?? (body || `Request failed with status ${response.status}`);
-    } catch {
-      message = body || `Request failed with status ${response.status}`;
-    }
-    return { status: response.status, message };
-  }
   async function Login(email, password) {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
       method: "POST",
@@ -87,6 +63,32 @@
       const body = await response.text();
       throw BuildApiError(response, body);
     }
+  }
+  function BuildApiError(response, body) {
+    const parseMessage = (value) => {
+      if (typeof value === "string") {
+        return value;
+      }
+      if (Array.isArray(value)) {
+        return value.map(parseMessage).filter(Boolean).join("; ");
+      }
+      if (typeof value === "object" && value !== null) {
+        const errorObject = value;
+        if (typeof errorObject.msg === "string") return errorObject.msg;
+        if (typeof errorObject.detail === "string") return errorObject.detail;
+        if (typeof errorObject.message === "string") return errorObject.message;
+        return Object.values(errorObject).map(parseMessage).filter(Boolean).join("; ");
+      }
+      return void 0;
+    };
+    let message;
+    try {
+      const parsed = JSON.parse(body);
+      message = parseMessage(parsed) ?? (body || `Request failed with status ${response.status}`);
+    } catch {
+      message = body || `Request failed with status ${response.status}`;
+    }
+    return { status: response.status, message };
   }
 
   // scripts/popupAuth.ts
@@ -239,7 +241,7 @@
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
     if (false) {
-      graphqlToggleButton = document.getElementById("toggleGraphQL");
+      graphqlToggleButton = document.getElementById("toggleGraphql");
     }
     submitButton = document.getElementById("submitButton");
     AttachMainPopupListeners(showAuthView);
@@ -304,7 +306,7 @@
     });
     DisplayJobs();
     if (false) {
-      DisplayGraphQLResponses();
+      DisplayGraphqlResponses();
     }
     UpdateSubmitButtonState();
     LogStorageSize();

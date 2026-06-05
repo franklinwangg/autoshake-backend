@@ -264,7 +264,7 @@ describe('ExtractJobField_givenNonStringValueAtPath_skipsAndFinds', () => {
   });
 });
 
-const sampleJobGraphQL: { data: { job: { id: string; __typename: string } } } = {
+const sampleJobGraphql: { data: { job: { id: string; __typename: string } } } = {
   data: {
     job: {
       id: '11054220',
@@ -273,9 +273,9 @@ const sampleJobGraphQL: { data: { job: { id: string; __typename: string } } } = 
   },
 };
 
-describe('FindJobIdInObject_givenSampleGraphQL_returnsId', () => {
+describe('FindJobIdInObject_givenSampleGraphql_returnsId', () => {
   it('returns 11054220 for the sample GraphQL payload', () => {
-    expect(FindJobIdInObject(sampleJobGraphQL.data)).toBe('11054220');
+    expect(FindJobIdInObject(sampleJobGraphql.data)).toBe('11054220');
   });
 });
 

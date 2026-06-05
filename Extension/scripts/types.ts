@@ -41,7 +41,7 @@ export interface StoreJobResponse {
 	error?: string;
 }
 
-export interface ParsedGraphQLData {
+export interface ParsedGraphqlData {
 	[key: string]: unknown;
 }
 

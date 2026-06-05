@@ -1,4 +1,4 @@
-import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphQLData } from './types';
+import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData } from './types';
 import { GetRelativeTime, ExtractJobField, IsObject } from './popupUtils';
 import { Logout } from './api';
 
@@ -16,7 +16,7 @@ export function SetupMainPopup(showAuthView: () => void): void {
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
 	if (DEBUG_GRAPHQL_VIEW) {
-		graphqlToggleButton = document.getElementById("toggleGraphQL");
+		graphqlToggleButton = document.getElementById("toggleGraphql");
 	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 
@@ -95,7 +95,7 @@ function RefreshMainView(): void {
 
 	DisplayJobs();
 	if (DEBUG_GRAPHQL_VIEW) {
-		DisplayGraphQLResponses();
+		DisplayGraphqlResponses();
 	}
 	
 	UpdateSubmitButtonState();
@@ -189,7 +189,7 @@ function DeleteJob(jobId: string): void {
 	});
 }
 
-function DisplayGraphQLResponses(): void {
+function DisplayGraphqlResponses(): void {
 	const container: HTMLElement | null = document.getElementById("graphqlResponses");
 	if (!container) return;
 
@@ -207,7 +207,7 @@ function DisplayGraphQLResponses(): void {
 
 		responses.slice().reverse().forEach((r: GraphqlResponse, i: number) => {
 		const parsed: unknown = JSON.parse(r.data);
-		const parsedData: ParsedGraphQLData | null = IsObject(parsed) ? parsed as ParsedGraphQLData : null;
+		const parsedData: ParsedGraphqlData | null = IsObject(parsed) ? parsed as ParsedGraphqlData : null;
 		const inner: unknown = parsedData && "data" in parsedData && IsObject(parsedData.data) ? parsedData.data : null;
 		const operationName: string = inner
 			? Object.keys(inner).join(", ") || "unknown"

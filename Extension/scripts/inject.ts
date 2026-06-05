@@ -40,7 +40,7 @@ async function HandleClonedResponse(clone: Response, args: Parameters<typeof win
 	try {
 		const data: unknown = await clone.json();
 
-		if (!IsGraphQLResponsePayload(data)) {
+		if (!IsGraphqlResponsePayload(data)) {
 			return;
 		}
 
@@ -68,7 +68,7 @@ async function HandleClonedResponse(clone: Response, args: Parameters<typeof win
 	}
 }
 
-function IsGraphQLResponsePayload(data: unknown): data is { data?: unknown; errors?: unknown } {
+function IsGraphqlResponsePayload(data: unknown): data is { data?: unknown; errors?: unknown } {
   	return IsObject(data) && ('data' in data || 'errors' in data);
 }
 

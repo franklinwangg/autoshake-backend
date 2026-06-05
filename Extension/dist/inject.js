@@ -65,7 +65,7 @@
   async function HandleClonedResponse(clone, args) {
     try {
       const data = await clone.json();
-      if (!IsGraphQLResponsePayload(data)) {
+      if (!IsGraphqlResponsePayload(data)) {
         return;
       }
       let jobId = FindJobIdInObject("data" in data ? data.data : data);
@@ -84,7 +84,7 @@
     } catch {
     }
   }
-  function IsGraphQLResponsePayload(data) {
+  function IsGraphqlResponsePayload(data) {
     return IsObject(data) && ("data" in data || "errors" in data);
   }
   function GetJobIdFromRequest(args) {
