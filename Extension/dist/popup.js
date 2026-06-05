@@ -2,22 +2,13 @@
 (() => {
   // scripts/popupAuth.ts
   function SetupAuth(callbacks) {
-    const { showMainView, showLoginView, showCreateAccountView } = callbacks;
+    const { showMainView, showLoginView, showAuthView } = callbacks;
     const loginButton = document.getElementById("loginButton");
     loginButton?.addEventListener("click", HandleLogin);
     const logoutButton = document.getElementById("logoutButton");
     logoutButton?.addEventListener("click", HandleLogout);
-    const createAccountLink = document.getElementById("createAccountLink");
-    createAccountLink?.addEventListener("click", () => {
-      showCreateAccountView();
-    });
     const createAccountButton = document.getElementById("createAccountButton");
     createAccountButton?.addEventListener("click", HandleCreateAccount);
-    const backToLoginLink = document.getElementById("backToLoginLink");
-    backToLoginLink?.addEventListener("click", () => {
-      ResetCreateAccountView();
-      showLoginView();
-    });
     const passwordInput = document.getElementById("passwordInput");
     passwordInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") HandleLogin();
@@ -65,7 +56,7 @@
     }
     function HandleLogout() {
       chrome.storage.local.set({ username: "" }, () => {
-        showLoginView();
+        showAuthView();
       });
     }
   }
@@ -181,7 +172,7 @@
     chrome.storage.local.get(["username"], (result) => {
       const usernameDisplay = document.getElementById("usernameDisplay");
       if (usernameDisplay && result.username) {
-        usernameDisplay.textContent = `Logged in as: ${result.username}`;
+        usernameDisplay.innerHTML = `<span class="label">Logged in as</span>${result.username}`;
       }
     });
   }
@@ -206,9 +197,14 @@
     });
   }
   function UpdateToggleLabel(isOn) {
-    if (stateText) {
-      stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}`;
-    }
+    if (!stateText) return;
+    const dot = stateText.querySelector(".status-dot");
+    if (dot) dot.classList.toggle("active", isOn);
+    stateText.childNodes.forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = isOn ? "Tracking Active" : "Tracking Paused";
+      }
+    });
   }
   function DisplayJobs() {
     if (!jobList) return;
@@ -273,10 +269,10 @@
       const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length > 0) {
         submitButton.disabled = false;
-        submitButton.textContent = "Submit Job List";
+        submitButton.textContent = `Submit ${jobs.length} Job${jobs.length !== 1 ? "s" : ""}`;
       } else {
         submitButton.disabled = true;
-        submitButton.textContent = "Need jobs to submit";
+        submitButton.textContent = "No jobs to submit";
       }
     });
   }
@@ -306,50 +302,66 @@
   }
 
   // scripts/popup.ts
-  var loginView = null;
+  var authView = null;
   var mainView = null;
-  var createAccountView = null;
+  var loginPanel = null;
+  var signupPanel = null;
+  var loginTab = null;
+  var signupTab = null;
   if (typeof window !== "undefined" && typeof chrome !== "undefined" && typeof chrome.storage !== "undefined" && typeof globalThis.vi === "undefined") {
     SetupPopupRoot();
   }
   function SetupPopupRoot() {
-    loginView = document.getElementById("loginView");
+    authView = document.getElementById("authView");
     mainView = document.getElementById("mainView");
-    createAccountView = document.getElementById("createAccountView");
+    loginPanel = document.getElementById("loginPanel");
+    signupPanel = document.getElementById("signupPanel");
+    loginTab = document.getElementById("loginTab");
+    signupTab = document.getElementById("signupTab");
     if (true) {
       const graphqlHeader = document.querySelector(".graphql-section-header");
       const graphqlContainer = document.getElementById("graphqlResponses");
       if (graphqlHeader) graphqlHeader.classList.add("hidden");
       if (graphqlContainer) graphqlContainer.classList.add("hidden");
     }
+    loginTab?.addEventListener("click", ShowLoginPanel);
+    signupTab?.addEventListener("click", ShowSignupPanel);
     SetupAuth({
       showMainView: ShowMainView,
-      showLoginView: ShowLoginView,
-      showCreateAccountView: ShowCreateAccountView
+      showLoginView: ShowLoginPanel,
+      showAuthView: ShowAuthView
     });
     SetupMainPopup();
     chrome.storage.local.get(["username"], (result) => {
       if (result.username) {
         ShowMainView();
       } else {
-        ShowLoginView();
+        ShowAuthView();
       }
     });
   }
   function SwitchView(view) {
-    if (!loginView || !mainView || !createAccountView) return;
-    loginView.classList.toggle("active", view === "login");
-    loginView.classList.toggle("hidden", view !== "login");
+    if (!authView || !mainView) return;
+    authView.classList.toggle("active", view === "auth");
+    authView.classList.toggle("hidden", view !== "auth");
     mainView.classList.toggle("active", view === "main");
     mainView.classList.toggle("hidden", view !== "main");
-    createAccountView.classList.toggle("active", view === "create");
-    createAccountView.classList.toggle("hidden", view !== "create");
   }
-  function ShowLoginView() {
-    SwitchView("login");
+  function ShowAuthView() {
+    SwitchView("auth");
+    ShowLoginPanel();
   }
-  function ShowCreateAccountView() {
-    SwitchView("create");
+  function ShowLoginPanel() {
+    if (loginPanel) loginPanel.classList.remove("hidden");
+    if (signupPanel) signupPanel.classList.add("hidden");
+    if (loginTab) loginTab.classList.add("active-tab");
+    if (signupTab) signupTab.classList.remove("active-tab");
+  }
+  function ShowSignupPanel() {
+    if (signupPanel) signupPanel.classList.remove("hidden");
+    if (loginPanel) loginPanel.classList.add("hidden");
+    if (signupTab) signupTab.classList.add("active-tab");
+    if (loginTab) loginTab.classList.remove("active-tab");
     ResetCreateAccountView();
   }
   function ShowMainView() {

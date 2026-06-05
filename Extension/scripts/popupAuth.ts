@@ -1,11 +1,11 @@
 ﻿interface AuthCallbacks {
 	showMainView: () => void;
 	showLoginView: () => void;
-	showCreateAccountView: () => void;
+	showAuthView: () => void;
 }
 
 export function SetupAuth(callbacks: AuthCallbacks): void {
-	const { showMainView, showLoginView, showCreateAccountView } = callbacks;
+	const { showMainView, showLoginView, showAuthView } = callbacks;
 
 	const loginButton = document.getElementById('loginButton');
 	loginButton?.addEventListener('click', HandleLogin);
@@ -13,19 +13,8 @@ export function SetupAuth(callbacks: AuthCallbacks): void {
 	const logoutButton = document.getElementById('logoutButton');
 	logoutButton?.addEventListener('click', HandleLogout);
 
-	const createAccountLink = document.getElementById('createAccountLink');
-	createAccountLink?.addEventListener('click', () => {
-		showCreateAccountView();
-	});
-
 	const createAccountButton = document.getElementById('createAccountButton');
 	createAccountButton?.addEventListener('click', HandleCreateAccount);
-
-	const backToLoginLink = document.getElementById('backToLoginLink');
-	backToLoginLink?.addEventListener('click', () => {
-		ResetCreateAccountView();
-		showLoginView();
-	});
 
 	const passwordInput = document.getElementById('passwordInput') as HTMLInputElement | null;
 	passwordInput?.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -87,7 +76,7 @@ export function SetupAuth(callbacks: AuthCallbacks): void {
 
 	function HandleLogout(): void {
 		chrome.storage.local.set({ username: '' }, () => {
-			showLoginView();
+			showAuthView();
 		});
 	}
 }

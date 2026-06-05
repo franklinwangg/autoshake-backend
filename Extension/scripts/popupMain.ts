@@ -55,7 +55,7 @@ function DisplayUsername(): void {
 	chrome.storage.local.get(['username'], (result: StorageResult) => {
 		const usernameDisplay = document.getElementById('usernameDisplay');
 		if (usernameDisplay && result.username) {
-			usernameDisplay.textContent = `Logged in as: ${result.username}`;
+			usernameDisplay.innerHTML = `<span class="label">Logged in as</span>${result.username}`;
 		}
 	});
 }
@@ -85,9 +85,14 @@ function LogStorageSize(): void {
 }
 
 function UpdateToggleLabel(isOn: boolean): void {
-	if (stateText) {
-		stateText.textContent = `Job Tracking: ${isOn ? "Enabled" : "Disabled"}`;
-	}
+	if (!stateText) return;
+	const dot = stateText.querySelector('.status-dot');
+	if (dot) dot.classList.toggle('active', isOn);
+	stateText.childNodes.forEach((node) => {
+		if (node.nodeType === Node.TEXT_NODE) {
+			node.textContent = isOn ? 'Tracking Active' : 'Tracking Paused';
+		}
+	});
 }
 
 function DisplayJobs(): void {
@@ -218,10 +223,10 @@ function UpdateSubmitButtonState(): void {
 		
 		if (jobs.length > 0) {
 			submitButton!.disabled = false;
-			submitButton!.textContent = "Submit Job List";
+			submitButton!.textContent = `Submit ${jobs.length} Job${jobs.length !== 1 ? 's' : ''}`;
 		} else {
 			submitButton!.disabled = true;
-			submitButton!.textContent = "Need jobs to submit";
+			submitButton!.textContent = "No jobs to submit";
 		}
 	});
 }

@@ -3,41 +3,42 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <div id="loginView">
-      <h1 class="login-title">AutoShake</h1>
-      <div class="login-form">
-        <input id="usernameInput" type="text" placeholder="Username" class="login-input" />
-        <input id="passwordInput" type="password" placeholder="Password" class="login-input" />
-        <div id="loginError" class="login-error"></div>
-        <button id="loginButton" class="login-button">Log In</button>
-        <div class="link-container">
-          <button id="createAccountLink" class="auth-link">Create Account</button>
-        </div>
+    <div id="authView">
+      <h1 class="login-title">Auto<span class="accent">Shake</span></h1>
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active-tab">Log In</button>
+        <button id="signupTab" class="auth-tab">Sign Up</button>
       </div>
-    </div>
-    <div id="createAccountView">
-      <h1 class="login-title">AutoShake</h1>
-      <div class="login-form">
-        <input id="createUsernameInput" type="text" placeholder="Username" class="login-input" />
-        <input id="createPasswordInput" type="password" placeholder="Password" class="login-input" />
-        <input id="confirmPasswordInput" type="password" placeholder="Confirm Password" class="login-input" />
-        <div id="createAccountError" class="login-error"></div>
-        <button id="createAccountButton" class="login-button">Create Account</button>
-        <div class="link-container">
-          <button id="backToLoginLink" class="auth-link">Back to Log In</button>
+      <div class="auth-card">
+        <div id="loginPanel">
+          <div class="login-form">
+            <input id="usernameInput" type="text" placeholder="Username" class="login-input" />
+            <input id="passwordInput" type="password" placeholder="Password" class="login-input" />
+            <div id="loginError" class="login-error"></div>
+            <button id="loginButton" class="login-button">Log In</button>
+          </div>
+        </div>
+        <div id="signupPanel" class="hidden">
+          <div class="login-form">
+            <input id="createUsernameInput" type="text" placeholder="Username" class="login-input" />
+            <input id="createPasswordInput" type="password" placeholder="Password" class="login-input" />
+            <input id="confirmPasswordInput" type="password" placeholder="Confirm Password" class="login-input" />
+            <div id="createAccountError" class="login-error"></div>
+            <button id="createAccountButton" class="login-button">Create Account</button>
+          </div>
         </div>
       </div>
     </div>
     <div id="mainView">
       <div class="main-header">
-        <h1>AutoShake</h1>
+        <h1>Auto<span class="accent">Shake</span></h1>
         <div class="header-actions">
           <button id="logoutButton">Log Out</button>
           <div id="usernameDisplay"></div>
         </div>
       </div>
       <div class="toggle-container">
-        <div id="trackingLabel" class="state-text">Job Tracking: Disabled</div>
+        <div id="trackingLabel" class="state-text"><span class="status-dot"></span>Tracking Paused</div>
         <label class="switch">
           <input id="stateToggle" type="checkbox" />
           <span class="slider"></span>
@@ -48,9 +49,11 @@
         <button id="toggleGraphQL">Hide</button>
       </div>
       <div id="graphqlResponses"></div>
-      <div id="jobList"></div>
+      <div class="jobs-card">
+        <div id="jobList"></div>
+      </div>
       <div class="submit-container">
-        <button id="submitButton" disabled>Need jobs to submit</button>
+        <button id="submitButton" disabled>No jobs to submit</button>
       </div>
     </div>
     <script src="dist/popup.js"></script>

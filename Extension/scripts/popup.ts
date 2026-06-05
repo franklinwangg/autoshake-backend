@@ -4,23 +4,27 @@ import type { StorageResult } from './types';
 
 declare const DEBUG_GRAPHQL_VIEW: boolean;
 
-export type PopupView = 'login' | 'create' | 'main';
+export type PopupView = 'auth' | 'main';
 
-let loginView: HTMLElement | null = null;
+let authView: HTMLElement | null = null;
 let mainView: HTMLElement | null = null;
-let createAccountView: HTMLElement | null = null;
+let loginPanel: HTMLElement | null = null;
+let signupPanel: HTMLElement | null = null;
+let loginTab: HTMLElement | null = null;
+let signupTab: HTMLElement | null = null;
 
-// Entry Point
 if (typeof window !== 'undefined' && typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined' && typeof (globalThis as Record<string, unknown>).vi === 'undefined') {
 	SetupPopupRoot();
 }
 
 function SetupPopupRoot(): void {
-	loginView = document.getElementById('loginView');
+	authView = document.getElementById('authView');
 	mainView = document.getElementById('mainView');
-	createAccountView = document.getElementById('createAccountView');
+	loginPanel = document.getElementById('loginPanel');
+	signupPanel = document.getElementById('signupPanel');
+	loginTab = document.getElementById('loginTab');
+	signupTab = document.getElementById('signupTab');
 
-	// Hide GraphQL section if not in debug mode
 	if (!DEBUG_GRAPHQL_VIEW) {
 		const graphqlHeader = document.querySelector(".graphql-section-header");
 		const graphqlContainer = document.getElementById("graphqlResponses");
@@ -28,10 +32,13 @@ function SetupPopupRoot(): void {
 		if (graphqlContainer) graphqlContainer.classList.add("hidden");
 	}
 
+	loginTab?.addEventListener('click', ShowLoginPanel);
+	signupTab?.addEventListener('click', ShowSignupPanel);
+
 	SetupAuth({
 		showMainView: ShowMainView,
-		showLoginView: ShowLoginView,
-		showCreateAccountView: ShowCreateAccountView,
+		showLoginView: ShowLoginPanel,
+		showAuthView: ShowAuthView,
 	});
 
 	SetupMainPopup();
@@ -40,30 +47,38 @@ function SetupPopupRoot(): void {
 		if (result.username) {
 			ShowMainView();
 		} else {
-			ShowLoginView();
+			ShowAuthView();
 		}
 	});
 }
 
 export function SwitchView(view: PopupView): void {
-	if (!loginView || !mainView || !createAccountView) return;
+	if (!authView || !mainView) return;
 
-	loginView.classList.toggle('active', view === 'login');
-	loginView.classList.toggle('hidden', view !== 'login');
+	authView.classList.toggle('active', view === 'auth');
+	authView.classList.toggle('hidden', view !== 'auth');
 
 	mainView.classList.toggle('active', view === 'main');
 	mainView.classList.toggle('hidden', view !== 'main');
-
-	createAccountView.classList.toggle('active', view === 'create');
-	createAccountView.classList.toggle('hidden', view !== 'create');
 }
 
-function ShowLoginView(): void {
-	SwitchView('login');
+function ShowAuthView(): void {
+	SwitchView('auth');
+	ShowLoginPanel();
 }
 
-function ShowCreateAccountView(): void {
-	SwitchView('create');
+function ShowLoginPanel(): void {
+	if (loginPanel) loginPanel.classList.remove('hidden');
+	if (signupPanel) signupPanel.classList.add('hidden');
+	if (loginTab) loginTab.classList.add('active-tab');
+	if (signupTab) signupTab.classList.remove('active-tab');
+}
+
+function ShowSignupPanel(): void {
+	if (signupPanel) signupPanel.classList.remove('hidden');
+	if (loginPanel) loginPanel.classList.add('hidden');
+	if (signupTab) signupTab.classList.add('active-tab');
+	if (loginTab) loginTab.classList.remove('active-tab');
 	ResetCreateAccountView();
 }
 
