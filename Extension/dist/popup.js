@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  // inject.ts
+  // popupUtils.ts
   var IsObject = (value) => value !== null && typeof value === "object";
   var NormalizeId = (value) => {
     if (typeof value === "string" && /^\d+$/.test(value)) return value;
@@ -40,114 +40,6 @@
     }
     return null;
   };
-  (() => {
-    if (window.__AUTOSHAKE_INITIALIZED__) {
-      console.log("[AutoShake] inject.js already running, skipping re-init");
-      return;
-    }
-    window.__AUTOSHAKE_INITIALIZED__ = true;
-    console.log("[AutoShake] inject.js initializing");
-    window.__AUTOSHAKE_GRAPHQL_RESPONSES__ = [];
-    window.__AUTOSHAKE_CLICKED_JOBS__ = [];
-    const origFetch = window.fetch;
-    const ParseJSON = (text) => {
-      try {
-        return JSON.parse(text);
-      } catch {
-        return null;
-      }
-    };
-    const ExtractJobIdFromRequest = (args) => {
-      try {
-        const requestInit = args[1];
-        const body = requestInit?.body;
-        if (typeof body === "string") {
-          const parsedBody = ParseJSON(body);
-          if (parsedBody) {
-            const candidate = FindJobIdInObject(parsedBody);
-            if (candidate) return candidate;
-          }
-        }
-        if (IsObject(body)) {
-          const candidate = FindJobIdInObject(body);
-          if (candidate) return candidate;
-        }
-        const firstArg = args[0];
-        const url = typeof firstArg === "string" ? firstArg : IsObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string" ? firstArg.url : void 0;
-        if (url) {
-          const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
-          if (match) return match[1] ?? null;
-        }
-      } catch (error) {
-        console.warn("[AutoShake] Error extracting job ID from request", error);
-      }
-      return null;
-    };
-    window.fetch = async (...args) => {
-      const res = await origFetch(...args);
-      const clone = res.clone();
-      clone.json().then((data) => {
-        if (IsObject(data) && ("data" in data || "errors" in data)) {
-          let jobId = FindJobIdInObject("data" in data ? data.data : data);
-          let source = "response";
-          if (!jobId) {
-            jobId = ExtractJobIdFromRequest(args);
-            source = "request";
-          }
-          if (jobId) {
-            const graphqlResponse = {
-              url: String(args[0]),
-              data: JSON.stringify(data),
-              timestamp: (/* @__PURE__ */ new Date()).toISOString()
-            };
-            window.postMessage({
-              type: "AUTOSHAKE_GRAPHQL_RESPONSE",
-              jobId,
-              response: graphqlResponse
-            }, "*");
-            console.log("[AutoShake] Intercepted GraphQL response for job ID:", jobId, "(source:", source, ")");
-          } else {
-            console.log("[AutoShake] GraphQL response has no detectable job ID, skipping");
-          }
-        }
-      }).catch(() => {
-      });
-      return res;
-    };
-    window.addEventListener("message", (event) => {
-      if (event.source !== window) return;
-      if (event.data.type === "AUTOSHAKE_GET_DATA") {
-        window.postMessage({
-          type: "AUTOSHAKE_DATA_RESPONSE",
-          graphqlResponses: window.__AUTOSHAKE_GRAPHQL_RESPONSES__,
-          clickedJobs: window.__AUTOSHAKE_CLICKED_JOBS__
-        }, "*");
-      }
-    });
-  })();
-
-  // popupUtils.ts
-  var MS_PER_MINUTE = 6e4;
-  var MINUTES_PER_HOUR = 60;
-  var HOURS_PER_DAY = 24;
-  function GetRelativeTime(isoString) {
-    const now = /* @__PURE__ */ new Date();
-    const past = new Date(isoString);
-    const diffMs = now.getTime() - past.getTime();
-    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
-    const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
-    const diffDays = Math.floor(diffHours / HOURS_PER_DAY);
-    if (diffMins < 1) {
-      return "just now";
-    }
-    if (diffMins < MINUTES_PER_HOUR) {
-      return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-    }
-    if (diffHours < HOURS_PER_DAY) {
-      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-    }
-    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  }
   function GetFieldFromObject(obj, path) {
     let current = obj;
     for (const segment of path) {
@@ -181,6 +73,140 @@
       }
     }
     return null;
+  }
+  var MS_PER_MINUTE = 6e4;
+  var MINUTES_PER_HOUR = 60;
+  var HOURS_PER_DAY = 24;
+  function GetRelativeTime(isoString) {
+    const now = /* @__PURE__ */ new Date();
+    const past = new Date(isoString);
+    const diffMs = now.getTime() - past.getTime();
+    const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
+    const diffHours = Math.floor(diffMins / MINUTES_PER_HOUR);
+    const diffDays = Math.floor(diffHours / HOURS_PER_DAY);
+    if (diffMins < 1) {
+      return "just now";
+    }
+    if (diffMins < MINUTES_PER_HOUR) {
+      return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+    }
+    if (diffHours < HOURS_PER_DAY) {
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    }
+    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  }
+
+  // inject.ts
+  var GRAPHQL_RESPONSE_MESSAGE = "AUTOSHAKE_GRAPHQL_RESPONSE";
+  InitializeAutoShake();
+  function InitializeAutoShake() {
+    if (window.__AUTOSHAKE_INITIALIZED__) {
+      console.log("[AutoShake] inject.js already running, skipping re-init");
+      return;
+    }
+    window.__AUTOSHAKE_INITIALIZED__ = true;
+    console.log("[AutoShake] inject.js initializing");
+    SetupFetchInterceptor();
+  }
+  function SetupFetchInterceptor() {
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const response = await originalFetch(...args);
+      const clone = response.clone();
+      void HandleClonedResponse(clone, args);
+      return response;
+    };
+  }
+  async function HandleClonedResponse(clone, args) {
+    try {
+      const data = await clone.json();
+      if (!IsGraphQLResponsePayload(data)) {
+        return;
+      }
+      let jobId = FindJobIdInObject("data" in data ? data.data : data);
+      let source = "response";
+      if (!jobId) {
+        jobId = GetJobIdFromRequest(args);
+        source = "request";
+      }
+      if (!jobId) {
+        console.log("[AutoShake] GraphQL response has no detectable job ID, skipping");
+        return;
+      }
+      const graphQLResponse = BuildGraphqlResponse(data, args);
+      PostGraphqlResponse(jobId, graphQLResponse);
+      console.log("[AutoShake] Intercepted GraphQL response for job ID:", jobId, "(source:", source, ")");
+    } catch {
+    }
+  }
+  function IsGraphQLResponsePayload(data) {
+    return IsObject(data) && ("data" in data || "errors" in data);
+  }
+  function GetJobIdFromRequest(args) {
+    try {
+      const requestInit = args[1];
+      const body = requestInit?.body;
+      const jobIdFromBody = GetJobIdFromRequestBody(body);
+      if (jobIdFromBody) {
+        return jobIdFromBody;
+      }
+      const url = GetRequestUrl(args);
+      if (!url) {
+        return null;
+      }
+      const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
+      return match?.[1] ?? null;
+    } catch (error) {
+      console.warn("[AutoShake] Error extracting job ID from request", error);
+      return null;
+    }
+  }
+  function GetJobIdFromRequestBody(body) {
+    if (typeof body === "string") {
+      const parsedBody = ParseJSON(body);
+      return parsedBody ? FindJobIdInObject(parsedBody) : null;
+    }
+    return IsObject(body) ? FindJobIdInObject(body) : null;
+  }
+  function ParseJSON(text) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  }
+  function GetRequestUrl(args) {
+    const firstArg = args[0];
+    if (typeof firstArg === "string") {
+      return firstArg;
+    }
+    if (typeof URL !== "undefined" && firstArg instanceof URL) {
+      return firstArg.toString();
+    }
+    if (typeof Request !== "undefined" && firstArg instanceof Request) {
+      return firstArg.url;
+    }
+    if (IsObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string") {
+      return firstArg.url;
+    }
+    return void 0;
+  }
+  function BuildGraphqlResponse(data, args) {
+    return {
+      url: GetRequestUrl(args) ?? String(args[0]),
+      data: JSON.stringify(data),
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    };
+  }
+  function PostGraphqlResponse(jobId, response) {
+    window.postMessage(
+      {
+        type: GRAPHQL_RESPONSE_MESSAGE,
+        jobId,
+        response
+      },
+      "*"
+    );
   }
 
   // popup.ts
@@ -282,7 +308,6 @@
     jobList = document.getElementById("jobList");
     if (false) {
       graphqlToggleButton = document.getElementById("toggleGraphQL");
-      graphqlStats = document.getElementById("graphqlStats");
     }
     submitButton = document.getElementById("submitButton");
   }
@@ -376,8 +401,8 @@
           chrome.tabs.create({ url: fullUrl });
         });
         const deleteButton = jobItem.querySelector(".delete-button");
-        deleteButton?.addEventListener("click", (e) => {
-          e.stopPropagation();
+        deleteButton?.addEventListener("click", (event) => {
+          event.stopPropagation();
           DeleteJob(job.jobId);
         });
         container.appendChild(jobItem);

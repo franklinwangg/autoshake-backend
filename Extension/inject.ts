@@ -1,170 +1,156 @@
 import type { GraphqlResponse } from './types';
+import { FindJobIdInObject, IsObject } from './popupUtils';
 
-type UnknownRecord = Record<string, unknown>;
-
-export const IsObject = (value: unknown): value is UnknownRecord => value !== null && typeof value === "object";
-
-export const NormalizeId = (value: unknown): string | null => {
-  if (typeof value === "string" && /^\d+$/.test(value)) return value;
-  if (typeof value === "number" && Number.isInteger(value)) return String(value);
-  return null;
-};
-
-export const FindJobIdInObject = (obj: unknown): string | null => {
-  if (!IsObject(obj)) return null;
-
-  if ("__typename" in obj && obj.__typename === "Job" && "id" in obj) {
-    return NormalizeId(obj.id);
-  }
-
-  if (IsObject(obj.job) && "id" in obj.job) {
-    return NormalizeId(obj.job.id);
-  }
-
-  if (Array.isArray(obj)) {
-    for (const item of obj) {
-      const found = FindJobIdInObject(item);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  for (const key of Object.keys(obj)) {
-    const value: unknown = obj[key];
-
-    if (key === "jobId" || key === "job_id" || key === "jobID") {
-      const normalized = NormalizeId(value);
-      if (normalized) return normalized;
-    }
-
-    if (key === "variables" && IsObject(value)) {
-      const candidate: unknown = ("jobId" in value ? value.jobId : undefined)
-        ?? ("id" in value ? value.id : undefined)
-        ?? ("job_id" in value ? value.job_id : undefined)
-        ?? ("jobID" in value ? value.jobID : undefined);
-      const normalized = NormalizeId(candidate);
-      if (normalized) return normalized;
-    }
-
-    if (IsObject(value) || Array.isArray(value)) {
-      const found = FindJobIdInObject(value);
-      if (found) return found;
-    }
-  }
-
-  return null;
-};
+const GRAPHQL_RESPONSE_MESSAGE = 'AUTOSHAKE_GRAPHQL_RESPONSE';
 
 declare global {
-  interface Window {
-    __AUTOSHAKE_INITIALIZED__: boolean;
-    __AUTOSHAKE_GRAPHQL_RESPONSES__: unknown[];
-    __AUTOSHAKE_CLICKED_JOBS__: unknown[];
-  }
+	interface Window {
+		__AUTOSHAKE_INITIALIZED__: boolean;
+	}
 }
 
-(() => {
-  if (window.__AUTOSHAKE_INITIALIZED__) {
-    console.log("[AutoShake] inject.js already running, skipping re-init");
-    return;
-  }
-  window.__AUTOSHAKE_INITIALIZED__ = true;
+InitializeAutoShake();
 
-  console.log("[AutoShake] inject.js initializing");
+function InitializeAutoShake(): void {
+	if (window.__AUTOSHAKE_INITIALIZED__) {
+		console.log('[AutoShake] inject.js already running, skipping re-init');
+		return;
+	}
 
-  window.__AUTOSHAKE_GRAPHQL_RESPONSES__ = [];
-  window.__AUTOSHAKE_CLICKED_JOBS__ = [];
+	window.__AUTOSHAKE_INITIALIZED__ = true;
+	console.log('[AutoShake] inject.js initializing');
 
-  const origFetch: typeof window.fetch = window.fetch;
+	SetupFetchInterceptor();
+}
 
-  const ParseJSON = (text: string): unknown => {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
-  };
+function SetupFetchInterceptor(): void {
+	const originalFetch = window.fetch;
 
-  const ExtractJobIdFromRequest = (args: IArguments | unknown[]): string | null => {
-    try {
-      const requestInit: Record<string, unknown> | undefined = (args as unknown[])[1] as Record<string, unknown> | undefined;
-      const body: unknown = requestInit?.body;
+	window.fetch = async (...args: Parameters<typeof window.fetch>): Promise<Response> => {
+		const response: Response = await originalFetch(...args);
+		const clone: Response = response.clone();
 
-      if (typeof body === "string") {
-        const parsedBody: unknown = ParseJSON(body);
-        if (parsedBody) {
-          const candidate = FindJobIdInObject(parsedBody);
-          if (candidate) return candidate;
-        }
-      }
+		void HandleClonedResponse(clone, args);
 
-      if (IsObject(body)) {
-        const candidate = FindJobIdInObject(body);
-        if (candidate) return candidate;
-      }
+		return response;
+	};
+}
 
-      const firstArg: unknown = (args as unknown[])[0];
-      const url: string | undefined = typeof firstArg === "string"
-        ? firstArg
-        : IsObject(firstArg) && "url" in firstArg && typeof firstArg.url === "string"
-          ? firstArg.url
-          : undefined;
-      if (url) {
-        const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
-        if (match) return match[1] ?? null;
-      }
-    } catch (error: unknown) {
-      console.warn("[AutoShake] Error extracting job ID from request", error);
-    }
+async function HandleClonedResponse(clone: Response, args: Parameters<typeof window.fetch>): Promise<void> {
+	try {
+		const data: unknown = await clone.json();
 
-    return null;
-  };
+		if (!IsGraphQLResponsePayload(data)) {
+			return;
+		}
 
-  window.fetch = async (...args: Parameters<typeof window.fetch>): Promise<Response> => {
-    const res: Response = await origFetch(...args);
-    const clone: Response = res.clone();
+		let jobId = FindJobIdInObject('data' in data ? data.data : data);
+		let source = 'response';
 
-    clone.json().then((data: unknown): void => {
-      if (IsObject(data) && ("data" in data || "errors" in data)) {
-        let jobId: string | null = FindJobIdInObject("data" in data ? data.data : data);
-        let source: string = "response";
+		// When job ID isn't in GraphQL response, try to extract it from the client's request
+		if (!jobId) {
+			jobId = GetJobIdFromRequest(args);
+			source = 'request';
+		}
 
-        if (!jobId) {
-          jobId = ExtractJobIdFromRequest(args);
-          source = "request";
-        }
+		if (!jobId) {
+			console.log('[AutoShake] GraphQL response has no detectable job ID, skipping');
+			return;
+		}
 
-        if (jobId) {
-          const graphqlResponse: GraphqlResponse = {
-            url: String((args as unknown[])[0]),
-            data: JSON.stringify(data),
-            timestamp: new Date().toISOString(),
-          };
+		const graphQLResponse = BuildGraphqlResponse(data, args);
+		PostGraphqlResponse(jobId, graphQLResponse);
 
-          window.postMessage({
-            type: "AUTOSHAKE_GRAPHQL_RESPONSE",
-            jobId: jobId,
-            response: graphqlResponse,
-          }, "*");
+		console.log('[AutoShake] Intercepted GraphQL response for job ID:', jobId, '(source:', source, ')');
+	}
+	catch {
+		// Ignore failures when response body is not JSON
+	}
+}
 
-          console.log("[AutoShake] Intercepted GraphQL response for job ID:", jobId, "(source:", source, ")");
-        } else {
-          console.log("[AutoShake] GraphQL response has no detectable job ID, skipping");
-        }
-      }
-    }).catch(() => {});
+function IsGraphQLResponsePayload(data: unknown): data is { data?: unknown; errors?: unknown } {
+  	return IsObject(data) && ('data' in data || 'errors' in data);
+}
 
-    return res;
-  };
+function GetJobIdFromRequest(args: Parameters<typeof window.fetch>): string | null {
+	try {
+		const requestInit = args[1];
+		const body = requestInit?.body;
 
-  window.addEventListener("message", (event: MessageEvent) => {
-    if (event.source !== window) return;
-    if (event.data.type === "AUTOSHAKE_GET_DATA") {
-      window.postMessage({
-        type: "AUTOSHAKE_DATA_RESPONSE",
-        graphqlResponses: window.__AUTOSHAKE_GRAPHQL_RESPONSES__,
-        clickedJobs: window.__AUTOSHAKE_CLICKED_JOBS__,
-      }, "*");
-    }
-  });
-})();
+		const jobIdFromBody = GetJobIdFromRequestBody(body);
+		if (jobIdFromBody) {
+		return jobIdFromBody;
+		}
+
+		const url = GetRequestUrl(args);
+		if (!url) {
+		return null;
+		}
+
+		const match = url.match(/jobId=(\d+)/) || url.match(/\/job-search\/(\d+)/);
+		return match?.[1] ?? null;
+	}
+	catch (error: unknown) {
+		console.warn('[AutoShake] Error extracting job ID from request', error);
+		return null;
+	}
+}
+
+function GetJobIdFromRequestBody(body: unknown): string | null {
+	if (typeof body === 'string') {
+		const parsedBody = ParseJSON(body);
+		return parsedBody ? FindJobIdInObject(parsedBody) : null;
+	}
+
+	return IsObject(body) ? FindJobIdInObject(body) : null;
+}
+
+function ParseJSON(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} 
+	catch {
+		return null;
+	}
+}
+
+function GetRequestUrl(args: Parameters<typeof window.fetch>): string | undefined {
+	const firstArg = args[0];
+
+	if (typeof firstArg === 'string') {
+		return firstArg;
+	}
+
+	if (typeof URL !== 'undefined' && firstArg instanceof URL) {
+		return firstArg.toString();
+	}
+
+	if (typeof Request !== 'undefined' && firstArg instanceof Request) {
+		return firstArg.url;
+	}
+
+	if (IsObject(firstArg) && 'url' in firstArg && typeof firstArg.url === 'string') {
+		return firstArg.url;
+	}
+
+	return undefined;
+}
+
+function BuildGraphqlResponse(data: unknown, args: Parameters<typeof window.fetch>): GraphqlResponse {
+	return {
+		url: GetRequestUrl(args) ?? String(args[0]),
+		data: JSON.stringify(data),
+		timestamp: new Date().toISOString(),
+	};
+}
+
+function PostGraphqlResponse(jobId: string, response: GraphqlResponse): void {
+	window.postMessage(
+		{
+		type: GRAPHQL_RESPONSE_MESSAGE,
+		jobId,
+		response,
+		},
+		'*',
+	);
+}

@@ -13,7 +13,6 @@ let toggle: HTMLInputElement | null = null;
 let stateText: HTMLElement | null = null;
 let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
-let graphqlStats: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
 let loginView: HTMLElement | null = null;
 let mainView: HTMLElement | null = null;
@@ -138,7 +137,6 @@ function InitializePopupDOMElements() {
 	jobList = document.getElementById("jobList");
 	if (DEBUG_GRAPHQL_VIEW) {
 		graphqlToggleButton = document.getElementById("toggleGraphQL");
-		graphqlStats = document.getElementById("graphqlStats");
 	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 }
@@ -319,8 +317,8 @@ function DisplayJobs(): void {
 			});
 			
 			const deleteButton: HTMLButtonElement | null = jobItem.querySelector(".delete-button");
-			deleteButton?.addEventListener("click", (e: MouseEvent) => {
-				e.stopPropagation();
+			deleteButton?.addEventListener("click", (event: MouseEvent) => {
+				event.stopPropagation();
 				DeleteJob(job.jobId);
 			});
 			
