@@ -11,7 +11,7 @@ let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
 
-export function SetupMainPopup(showAuthView: () => void): void {
+export function SetupMainPopup(showAuthView: () => void, showResumeView: () => void): void {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
@@ -20,10 +20,10 @@ export function SetupMainPopup(showAuthView: () => void): void {
 	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 
-	AttachMainPopupListeners(showAuthView);
+	AttachMainPopupListeners(showAuthView, showResumeView);
 }
 
-function AttachMainPopupListeners(showAuthView: () => void): void {
+function AttachMainPopupListeners(showAuthView: () => void, showResumeView: () => void): void {
 	if (toggle) {
 		toggle.addEventListener('change', () => {
 			const isOn: boolean = toggle!.checked;
@@ -48,6 +48,9 @@ function AttachMainPopupListeners(showAuthView: () => void): void {
 
 	const logoutButton = document.getElementById('logoutButton');
 	logoutButton?.addEventListener('click', () => HandleLogout(showAuthView));
+
+	const updateResumeButton = document.getElementById('updateResumeButton');
+	updateResumeButton?.addEventListener('click', showResumeView);
 }
 
 export function ResetMainPopup(): void {

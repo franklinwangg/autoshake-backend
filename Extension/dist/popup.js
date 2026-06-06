@@ -64,6 +64,60 @@
       throw BuildApiError(response, body);
     }
   }
+  async function GetResume(authToken) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_RESUME}`, {
+      headers: { "Authorization": `Bearer ${authToken}` }
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
+  async function ExtractResumeText(authToken, url) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EXTRACT_RESUME_TEXT}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ url })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
+  async function ParseResume(authToken, text) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.PARSE_RESUME}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ text })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
+  async function UploadResume(authToken, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_RESUME}`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${authToken}` },
+      body: formData
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.json();
+  }
   function BuildApiError(response, body) {
     const parseMessage = (value) => {
       if (typeof value === "string") {
@@ -92,15 +146,15 @@
   }
 
   // scripts/popupAuth.ts
-  function SetupAuth(callbacks) {
-    const { showMainView, showLoginView } = callbacks;
+  function SetupAuth(callbacks2) {
+    const { routeAfterLogin, showLoginView } = callbacks2;
     const loginButton = document.getElementById("loginButton");
-    loginButton?.addEventListener("click", () => HandleLogin(showMainView));
+    loginButton?.addEventListener("click", () => HandleLogin(routeAfterLogin));
     const createAccountButton = document.getElementById("createAccountButton");
     createAccountButton?.addEventListener("click", () => HandleCreateAccount(showLoginView));
     const passwordInput = document.getElementById("passwordInput");
     passwordInput?.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") HandleLogin(showMainView);
+      if (event.key === "Enter") HandleLogin(routeAfterLogin);
     });
     const confirmPasswordInput = document.getElementById("confirmPasswordInput");
     confirmPasswordInput?.addEventListener("keydown", (event) => {
@@ -236,7 +290,7 @@
   var stateText = null;
   var jobList = null;
   var submitButton = null;
-  function SetupMainPopup(showAuthView) {
+  function SetupMainPopup(showAuthView, showResumeView) {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
@@ -244,9 +298,9 @@
       graphqlToggleButton = document.getElementById("toggleGraphql");
     }
     submitButton = document.getElementById("submitButton");
-    AttachMainPopupListeners(showAuthView);
+    AttachMainPopupListeners(showAuthView, showResumeView);
   }
-  function AttachMainPopupListeners(showAuthView) {
+  function AttachMainPopupListeners(showAuthView, showResumeView) {
     if (toggle) {
       toggle.addEventListener("change", () => {
         const isOn = toggle.checked;
@@ -267,6 +321,8 @@
     submitButton?.addEventListener("click", SubmitJobList);
     const logoutButton = document.getElementById("logoutButton");
     logoutButton?.addEventListener("click", () => HandleLogout(showAuthView));
+    const updateResumeButton = document.getElementById("updateResumeButton");
+    updateResumeButton?.addEventListener("click", showResumeView);
   }
   function ResetMainPopup() {
     DisplayEmail();
@@ -423,8 +479,131 @@
     });
   }
 
+  // scripts/popupResume.ts
+  var dropZone = null;
+  var fileInput = null;
+  var uploadError = null;
+  var uploadStatus = null;
+  var backButton = null;
+  var callbacks = null;
+  var hasExistingResume = false;
+  function SetupResumeView(resumeCallbacks) {
+    callbacks = resumeCallbacks;
+    dropZone = document.getElementById("resumeDropZone");
+    fileInput = document.getElementById("resumeFileInput");
+    uploadError = document.getElementById("resumeUploadError");
+    uploadStatus = document.getElementById("resumeUploadStatus");
+    backButton = document.getElementById("resumeBackButton");
+    AttachResumeViewListeners();
+  }
+  function AttachResumeViewListeners() {
+    if (!dropZone) return;
+    dropZone.addEventListener("dragover", HandleDragOver);
+    dropZone.addEventListener("dragleave", HandleDragLeave);
+    dropZone.addEventListener("drop", HandleDrop);
+    dropZone.addEventListener("click", () => fileInput?.click());
+    if (fileInput) {
+      fileInput.addEventListener("change", HandleFileInputChange);
+    }
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        if (callbacks) callbacks.showMainView();
+      });
+    }
+  }
+  function ResetResumeView(isReturningFromMain) {
+    if (uploadError) uploadError.textContent = "";
+    if (uploadStatus) uploadStatus.textContent = "";
+    if (fileInput) fileInput.value = "";
+    hasExistingResume = isReturningFromMain;
+    if (backButton) {
+      backButton.classList.toggle("hidden", !isReturningFromMain);
+    }
+  }
+  function HandleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    dropZone?.classList.add("drag-over");
+  }
+  function HandleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    dropZone?.classList.remove("drag-over");
+  }
+  function HandleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    dropZone?.classList.remove("drag-over");
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!IsValidPdf(file)) {
+      ShowUploadError("Please upload a PDF file.");
+      return;
+    }
+    ProcessResumeUpload(file);
+  }
+  function HandleFileInputChange() {
+    const file = fileInput?.files?.[0];
+    if (!file) return;
+    if (!IsValidPdf(file)) {
+      ShowUploadError("Please upload a PDF file.");
+      return;
+    }
+    ProcessResumeUpload(file);
+  }
+  function IsValidPdf(file) {
+    return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  }
+  async function ProcessResumeUpload(file) {
+    if (uploadError) uploadError.textContent = "";
+    SetUploadStatus("Uploading resume...");
+    const authToken = await GetAuthToken2();
+    if (!authToken) {
+      ShowUploadError("Not authenticated. Please log in again.");
+      return;
+    }
+    try {
+      await UploadResume(authToken, file);
+      SetUploadStatus("Resume uploaded. Extracting text...");
+      const resumeList = await GetResume(authToken);
+      const latestResume = resumeList.resumes[0];
+      if (!latestResume) {
+        ShowUploadError("Upload succeeded but no resume found on server.");
+        return;
+      }
+      SetUploadStatus("Extracting text from resume...");
+      const extracted = await ExtractResumeText(authToken, latestResume.url);
+      SetUploadStatus("Parsing resume...");
+      const parsed = await ParseResume(authToken, extracted.text);
+      chrome.storage.local.set({ resumeJson: parsed }, () => {
+        SetUploadStatus("Resume processed successfully!");
+        if (callbacks) callbacks.showMainView();
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Upload failed. Please try again.";
+      const apiError = error;
+      ShowUploadError(apiError?.message ?? message);
+    }
+  }
+  function GetAuthToken2() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["authToken"], (result) => {
+        resolve(result.authToken);
+      });
+    });
+  }
+  function ShowUploadError(message) {
+    if (uploadStatus) uploadStatus.textContent = "";
+    if (uploadError) uploadError.textContent = message;
+  }
+  function SetUploadStatus(message) {
+    if (uploadStatus) uploadStatus.textContent = message;
+  }
+
   // scripts/popup.ts
   var authView = null;
+  var resumeView = null;
   var mainView = null;
   var loginPanel = null;
   var signupPanel = null;
@@ -435,6 +614,7 @@
   }
   function SetupPopupRoot() {
     authView = document.getElementById("authView");
+    resumeView = document.getElementById("resumeView");
     mainView = document.getElementById("mainView");
     loginPanel = document.getElementById("loginPanel");
     signupPanel = document.getElementById("signupPanel");
@@ -449,22 +629,65 @@
     loginTab?.addEventListener("click", ShowLoginPanel);
     signupTab?.addEventListener("click", ShowSignupPanel);
     SetupAuth({
-      showMainView: ShowMainView,
+      routeAfterLogin: RouteAfterLogin,
       showLoginView: ShowLoginPanel
     });
-    SetupMainPopup(ShowAuthView);
+    SetupResumeView({
+      showMainView: ShowMainView
+    });
+    SetupMainPopup(ShowAuthView, ShowResumeViewFromMain);
     chrome.storage.local.get(["authToken"], (result) => {
       if (result.authToken) {
-        ShowMainView();
+        RouteAfterLogin();
       } else {
         ShowAuthView();
       }
     });
   }
+  async function RouteAfterLogin() {
+    const authToken = await GetAuthTokenFromStorage();
+    if (!authToken) {
+      ShowAuthView();
+      return;
+    }
+    try {
+      const resumeList = await GetResume(authToken);
+      if (resumeList.resumes.length > 0) {
+        const hasResumeJson = await HasLocalResumeJson();
+        if (!hasResumeJson) {
+          await FetchAndStoreResumeJson(authToken, resumeList.resumes[0].url);
+        }
+        LogResumeJson();
+        ShowMainView();
+      } else {
+        ShowResumeViewFromAuth();
+      }
+    } catch {
+      ShowMainView();
+    }
+  }
+  async function HasLocalResumeJson() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["resumeJson"], (result) => {
+        resolve(!!result.resumeJson);
+      });
+    });
+  }
+  async function FetchAndStoreResumeJson(authToken, resumeUrl) {
+    const extracted = await ExtractResumeText(authToken, resumeUrl);
+    const parsed = await ParseResume(authToken, extracted.text);
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ resumeJson: parsed }, () => {
+        resolve();
+      });
+    });
+  }
   function SwitchView(view) {
-    if (!authView || !mainView) return;
+    if (!authView || !resumeView || !mainView) return;
     authView.classList.toggle("active", view === "auth");
     authView.classList.toggle("hidden", view !== "auth");
+    resumeView.classList.toggle("active", view === "resume");
+    resumeView.classList.toggle("hidden", view !== "resume");
     mainView.classList.toggle("active", view === "main");
     mainView.classList.toggle("hidden", view !== "main");
   }
@@ -485,8 +708,28 @@
     if (loginTab) loginTab.classList.remove("active-tab");
     ResetCreateAccountView();
   }
+  function ShowResumeViewFromAuth() {
+    SwitchView("resume");
+    ResetResumeView(false);
+  }
+  function ShowResumeViewFromMain() {
+    SwitchView("resume");
+    ResetResumeView(true);
+  }
   function ShowMainView() {
     SwitchView("main");
     ResetMainPopup();
+  }
+  function GetAuthTokenFromStorage() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["authToken"], (result) => {
+        resolve(result.authToken);
+      });
+    });
+  }
+  function LogResumeJson() {
+    chrome.storage.local.get(["resumeJson"], (result) => {
+      console.log("Resume JSON:", result.resumeJson);
+    });
   }
 })();

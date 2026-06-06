@@ -1,22 +1,22 @@
 import { Login, Signup } from './api';
 
 interface AuthCallbacks {
-	showMainView: () => void;
+	routeAfterLogin: () => void;
 	showLoginView: () => void;
 }
 
 export function SetupAuth(callbacks: AuthCallbacks): void {
-	const { showMainView, showLoginView } = callbacks;
+	const { routeAfterLogin, showLoginView } = callbacks;
 
 	const loginButton = document.getElementById('loginButton');
-	loginButton?.addEventListener('click', () => HandleLogin(showMainView));
+	loginButton?.addEventListener('click', () => HandleLogin(routeAfterLogin));
 
 	const createAccountButton = document.getElementById('createAccountButton');
 	createAccountButton?.addEventListener('click', () => HandleCreateAccount(showLoginView));
 
 	const passwordInput = document.getElementById('passwordInput') as HTMLInputElement | null;
 	passwordInput?.addEventListener('keydown', (event: KeyboardEvent) => {
-		if (event.key === 'Enter') HandleLogin(showMainView);
+		if (event.key === 'Enter') HandleLogin(routeAfterLogin);
 	});
 
 	const confirmPasswordInput = document.getElementById('confirmPasswordInput') as HTMLInputElement | null;

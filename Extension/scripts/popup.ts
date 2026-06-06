@@ -1,12 +1,15 @@
 import { SetupAuth, ResetCreateAccountView } from './popupAuth';
 import { SetupMainPopup, ResetMainPopup } from './popupMain';
+import { SetupResumeView, ResetResumeView } from './popupResume';
+import { GetResume, ExtractResumeText, ParseResume } from './api';
 import type { StorageResult } from './types';
 
 declare const DEBUG_GRAPHQL_VIEW: boolean;
 
-export type PopupView = 'auth' | 'main';
+export type PopupView = 'auth' | 'resume' | 'main';
 
 let authView: HTMLElement | null = null;
+let resumeView: HTMLElement | null = null;
 let mainView: HTMLElement | null = null;
 let loginPanel: HTMLElement | null = null;
 let signupPanel: HTMLElement | null = null;
@@ -19,6 +22,7 @@ if (typeof window !== 'undefined' && typeof chrome !== 'undefined' && typeof chr
 
 function SetupPopupRoot(): void {
 	authView = document.getElementById('authView');
+	resumeView = document.getElementById('resumeView');
 	mainView = document.getElementById('mainView');
 	loginPanel = document.getElementById('loginPanel');
 	signupPanel = document.getElementById('signupPanel');
@@ -36,26 +40,76 @@ function SetupPopupRoot(): void {
 	signupTab?.addEventListener('click', ShowSignupPanel);
 
 	SetupAuth({
-		showMainView: ShowMainView,
+		routeAfterLogin: RouteAfterLogin,
 		showLoginView: ShowLoginPanel,
 	});
 
-	SetupMainPopup(ShowAuthView);
+	SetupResumeView({
+		showMainView: ShowMainView,
+	});
+
+	SetupMainPopup(ShowAuthView, ShowResumeViewFromMain);
 
 	chrome.storage.local.get(['authToken'], (result: StorageResult) => {
 		if (result.authToken) {
-			ShowMainView();
+			RouteAfterLogin();
 		} else {
 			ShowAuthView();
 		}
 	});
 }
 
+async function RouteAfterLogin(): Promise<void> {
+	const authToken = await GetAuthTokenFromStorage();
+	if (!authToken) {
+		ShowAuthView();
+		return;
+	}
+
+	try {
+		const resumeList = await GetResume(authToken);
+		if (resumeList.resumes.length > 0) {
+			const hasResumeJson = await HasLocalResumeJson();
+			if (!hasResumeJson) {
+				await FetchAndStoreResumeJson(authToken, resumeList.resumes[0].url);
+			}
+			LogResumeJson();
+			ShowMainView();
+		} else {
+			ShowResumeViewFromAuth();
+		}
+	} catch {
+		ShowMainView();
+	}
+}
+
+async function HasLocalResumeJson(): Promise<boolean> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(['resumeJson'], (result: StorageResult) => {
+			resolve(!!result.resumeJson);
+		});
+	});
+}
+
+async function FetchAndStoreResumeJson(authToken: string, resumeUrl: string): Promise<void> {
+	const extracted = await ExtractResumeText(authToken, resumeUrl);
+	const parsed = await ParseResume(authToken, extracted.text);
+
+	return new Promise((resolve) => {
+		chrome.storage.local.set({ resumeJson: parsed }, () => {
+			resolve();
+		});
+	});
+}
+
 export function SwitchView(view: PopupView): void {
-	if (!authView || !mainView) return;
+	if (!authView || !resumeView || !mainView) return;
 
 	authView.classList.toggle('active', view === 'auth');
 	authView.classList.toggle('hidden', view !== 'auth');
+
+	resumeView.classList.toggle('active', view === 'resume');
+	resumeView.classList.toggle('hidden', view !== 'resume');
 
 	mainView.classList.toggle('active', view === 'main');
 	mainView.classList.toggle('hidden', view !== 'main');
@@ -81,7 +135,31 @@ function ShowSignupPanel(): void {
 	ResetCreateAccountView();
 }
 
+function ShowResumeViewFromAuth(): void {
+	SwitchView('resume');
+	ResetResumeView(false);
+}
+
+function ShowResumeViewFromMain(): void {
+	SwitchView('resume');
+	ResetResumeView(true);
+}
+
 function ShowMainView(): void {
 	SwitchView('main');
 	ResetMainPopup();
+}
+
+function GetAuthTokenFromStorage(): Promise<string | undefined> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
+			resolve(result.authToken);
+		});
+	});
+}
+
+function LogResumeJson(): void {
+	chrome.storage.local.get(['resumeJson'], (result: StorageResult) => {
+		console.log('Resume JSON:', result.resumeJson);
+	});
 }

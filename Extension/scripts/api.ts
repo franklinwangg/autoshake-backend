@@ -4,6 +4,28 @@ export interface AuthResponse {
 	access_token: string;
 }
 
+export interface ResumeListResponse {
+	resumes: ResumeRecord[];
+}
+
+export interface ResumeRecord {
+	user_id: string;
+	filename: string;
+	storage_path: string;
+	url: string;
+	created_at: string;
+}
+
+export interface ExtractTextResponse {
+	text: string;
+}
+
+export interface UploadResumeResponse {
+	message: string;
+	path: string;
+	url: string;
+}
+
 export interface ApiError {
 	status: number;
 	message: string;
@@ -52,6 +74,73 @@ export async function Logout(authToken: string): Promise<void> {
 		const body = await response.text();
 		throw BuildApiError(response, body);
 	}
+}
+
+export async function GetResume(authToken: string): Promise<ResumeListResponse> {
+	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_RESUME}`, {
+		headers: { "Authorization": `Bearer ${authToken}` },
+	});
+
+	if (!response.ok) {
+		const body = await response.text();
+		throw BuildApiError(response, body);
+	}
+
+	return response.json();
+}
+
+export async function ExtractResumeText(authToken: string, url: string): Promise<ExtractTextResponse> {
+	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.EXTRACT_RESUME_TEXT}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${authToken}`,
+		},
+		body: JSON.stringify({ url }),
+	});
+
+	if (!response.ok) {
+		const body = await response.text();
+		throw BuildApiError(response, body);
+	}
+
+	return response.json();
+}
+
+export async function ParseResume(authToken: string, text: string): Promise<Record<string, unknown>> {
+	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.PARSE_RESUME}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${authToken}`,
+		},
+		body: JSON.stringify({ text }),
+	});
+
+	if (!response.ok) {
+		const body = await response.text();
+		throw BuildApiError(response, body);
+	}
+
+	return response.json();
+}
+
+export async function UploadResume(authToken: string, file: File): Promise<UploadResumeResponse> {
+	const formData = new FormData();
+	formData.append("file", file);
+
+	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_RESUME}`, {
+		method: "POST",
+		headers: { "Authorization": `Bearer ${authToken}` },
+		body: formData,
+	});
+
+	if (!response.ok) {
+		const body = await response.text();
+		throw BuildApiError(response, body);
+	}
+
+	return response.json();
 }
 
 function BuildApiError(response: Response, body: string): ApiError {

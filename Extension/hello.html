@@ -29,11 +29,23 @@
         </div>
       </div>
     </div>
+    <div id="resumeView" class="hidden">
+      <button id="resumeBackButton" class="resume-back-button hidden">Back</button>
+      <h1 class="resume-title">Upload Your Resume</h1>
+      <div id="resumeDropZone" class="resume-drop-zone">
+        <p>Drag & drop your PDF here</p>
+        <p class="resume-drop-subtitle">or click to browse</p>
+        <input id="resumeFileInput" type="file" accept="application/pdf" class="hidden" />
+      </div>
+      <div id="resumeUploadError" class="login-error"></div>
+      <div id="resumeUploadStatus" class="resume-upload-status"></div>
+    </div>
     <div id="mainView">
       <div class="main-header">
         <h1>Auto<span class="accent">Shake</span></h1>
         <div class="header-actions">
           <button id="logoutButton">Log Out</button>
+          <button id="updateResumeButton" class="update-resume-button">Update Resume</button>
           <div id="emailDisplay"></div>
         </div>
       </div>
