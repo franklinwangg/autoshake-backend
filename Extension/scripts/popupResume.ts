@@ -1,4 +1,5 @@
 import { UploadResume, GetResume, ExtractResumeText, ParseResume } from './api';
+import { GetAuthTokenFromStorage } from './popupUtils';
 import type { StorageResult } from './types';
 
 interface ResumeCallbacks {
@@ -49,8 +50,6 @@ export function ResetResumeView(isReturningFromMain: boolean): void {
 	if (uploadError) uploadError.textContent = '';
 	if (uploadStatus) uploadStatus.textContent = '';
 	if (fileInput) fileInput.value = '';
-
-	hasExistingResume = isReturningFromMain;
 
 	if (backButton) {
 		backButton.classList.toggle('hidden', !isReturningFromMain);
@@ -106,7 +105,7 @@ async function ProcessResumeUpload(file: File): Promise<void> {
 	if (uploadError) uploadError.textContent = '';
 	SetUploadStatus('Uploading resume...');
 
-	const authToken = await GetAuthToken();
+	const authToken = await GetAuthTokenFromStorage();
 	if (!authToken) {
 		ShowUploadError('Not authenticated. Please log in again.');
 		return;
@@ -134,18 +133,9 @@ async function ProcessResumeUpload(file: File): Promise<void> {
 			if (callbacks) callbacks.showMainView();
 		});
 	} catch (error: unknown) {
-		const message = error instanceof Error ? error.message : 'Upload failed. Please try again.';
 		const apiError = error as { message?: string } | undefined;
-		ShowUploadError(apiError?.message ?? message);
+		ShowUploadError(apiError?.message ?? 'Upload failed. Please try again.');
 	}
-}
-
-function GetAuthToken(): Promise<string | undefined> {
-	return new Promise((resolve) => {
-		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
-			resolve(result.authToken);
-		});
-	});
 }
 
 function ShowUploadError(message: string): void {

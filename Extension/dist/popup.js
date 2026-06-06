@@ -228,6 +228,13 @@
   }
 
   // scripts/popupUtils.ts
+  function GetAuthTokenFromStorage() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["authToken"], (result) => {
+        resolve(result.authToken);
+      });
+    });
+  }
   var IsObject = (value) => value !== null && typeof value === "object";
   function GetFieldFromObject(obj, path) {
     let current = obj;
@@ -337,7 +344,7 @@
     });
   }
   async function HandleLogout(showAuthView) {
-    const authToken = await GetAuthToken();
+    const authToken = await GetAuthTokenFromStorage();
     if (authToken) {
       Logout(authToken).catch((error) => {
         console.warn("Logout API call failed, clearing local session anyway:", error);
@@ -345,13 +352,6 @@
     }
     chrome.storage.local.remove(["authToken", "email"], () => {
       showAuthView();
-    });
-  }
-  function GetAuthToken() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(["authToken"], (result) => {
-        resolve(result.authToken);
-      });
     });
   }
   function RefreshMainView() {
@@ -486,7 +486,6 @@
   var uploadStatus = null;
   var backButton = null;
   var callbacks = null;
-  var hasExistingResume = false;
   function SetupResumeView(resumeCallbacks) {
     callbacks = resumeCallbacks;
     dropZone = document.getElementById("resumeDropZone");
@@ -515,7 +514,6 @@
     if (uploadError) uploadError.textContent = "";
     if (uploadStatus) uploadStatus.textContent = "";
     if (fileInput) fileInput.value = "";
-    hasExistingResume = isReturningFromMain;
     if (backButton) {
       backButton.classList.toggle("hidden", !isReturningFromMain);
     }
@@ -558,7 +556,7 @@
   async function ProcessResumeUpload(file) {
     if (uploadError) uploadError.textContent = "";
     SetUploadStatus("Uploading resume...");
-    const authToken = await GetAuthToken2();
+    const authToken = await GetAuthTokenFromStorage();
     if (!authToken) {
       ShowUploadError("Not authenticated. Please log in again.");
       return;
@@ -581,17 +579,9 @@
         if (callbacks) callbacks.showMainView();
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Upload failed. Please try again.";
       const apiError = error;
-      ShowUploadError(apiError?.message ?? message);
+      ShowUploadError(apiError?.message ?? "Upload failed. Please try again.");
     }
-  }
-  function GetAuthToken2() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(["authToken"], (result) => {
-        resolve(result.authToken);
-      });
-    });
   }
   function ShowUploadError(message) {
     if (uploadStatus) uploadStatus.textContent = "";
@@ -719,13 +709,6 @@
   function ShowMainView() {
     SwitchView("main");
     ResetMainPopup();
-  }
-  function GetAuthTokenFromStorage() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(["authToken"], (result) => {
-        resolve(result.authToken);
-      });
-    });
   }
   function LogResumeJson() {
     chrome.storage.local.get(["resumeJson"], (result) => {

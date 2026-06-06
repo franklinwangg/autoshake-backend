@@ -1,5 +1,5 @@
 import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData } from './types';
-import { GetRelativeTime, ExtractJobField, IsObject } from './popupUtils';
+import { GetRelativeTime, ExtractJobField, IsObject, GetAuthTokenFromStorage } from './popupUtils';
 import { Logout } from './api';
 
 // Compile-time debug flag for GraphQL view
@@ -68,7 +68,7 @@ function DisplayEmail(): void {
 }
 
 async function HandleLogout(showAuthView: () => void): Promise<void> {
-	const authToken = await GetAuthToken();
+	const authToken = await GetAuthTokenFromStorage();
 
 	if (authToken) {
 		Logout(authToken).catch((error: unknown) => {
@@ -78,14 +78,6 @@ async function HandleLogout(showAuthView: () => void): Promise<void> {
 
 	chrome.storage.local.remove(['authToken', 'email'], () => {
 		showAuthView();
-	});
-}
-
-function GetAuthToken(): Promise<string | undefined> {
-	return new Promise((resolve) => {
-		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
-			resolve(result.authToken);
-		});
 	});
 }
 

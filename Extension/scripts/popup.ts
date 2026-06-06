@@ -2,6 +2,7 @@ import { SetupAuth, ResetCreateAccountView } from './popupAuth';
 import { SetupMainPopup, ResetMainPopup } from './popupMain';
 import { SetupResumeView, ResetResumeView } from './popupResume';
 import { GetResume, ExtractResumeText, ParseResume } from './api';
+import { GetAuthTokenFromStorage } from './popupUtils';
 import type { StorageResult } from './types';
 
 declare const DEBUG_GRAPHQL_VIEW: boolean;
@@ -148,14 +149,6 @@ function ShowResumeViewFromMain(): void {
 function ShowMainView(): void {
 	SwitchView('main');
 	ResetMainPopup();
-}
-
-function GetAuthTokenFromStorage(): Promise<string | undefined> {
-	return new Promise((resolve) => {
-		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
-			resolve(result.authToken);
-		});
-	});
 }
 
 function LogResumeJson(): void {

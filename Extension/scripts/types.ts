@@ -29,6 +29,7 @@ export interface StorageResult {
 	jobData?: JobData;
 	email?: string;
 	authToken?: string;
+	resumeJson?: Record<string, unknown>;
 }
 
 export interface StoreJobMessage {

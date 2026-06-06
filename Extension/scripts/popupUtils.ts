@@ -1,6 +1,14 @@
-import type { GraphqlResponse } from './types';
+import type { GraphqlResponse, StorageResult } from './types';
 
 type UnknownRecord = Record<string, unknown>;
+
+export function GetAuthTokenFromStorage(): Promise<string | undefined> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(['authToken'], (result: StorageResult) => {
+			resolve(result.authToken);
+		});
+	});
+}
 
 export const IsObject = (value: unknown): value is UnknownRecord => value !== null && typeof value === "object";
 
