@@ -1,17 +1,21 @@
 import { SetupAuth, ResetCreateAccountView } from './popupAuth';
 import { SetupMainPopup, ResetMainPopup } from './popupMain';
 import { SetupResumeView, ResetResumeView } from './popupResume';
+import { SetupGeneratingView, ResetGeneratingView } from './popupGenerating';
+import { SetupResultsView, ResetResultsView } from './popupResults';
 import { GetResume, ExtractResumeText, ParseResume } from './api';
 import { GetAuthTokenFromStorage } from './popupUtils';
 import type { StorageResult } from './types';
 
 declare const DEBUG_GRAPHQL_VIEW: boolean;
 
-export type PopupView = 'auth' | 'resume' | 'main';
+export type PopupView = 'auth' | 'resume' | 'main' | 'generating' | 'results';
 
 let authView: HTMLElement | null = null;
 let resumeView: HTMLElement | null = null;
 let mainView: HTMLElement | null = null;
+let generatingView: HTMLElement | null = null;
+let resultsView: HTMLElement | null = null;
 let loginPanel: HTMLElement | null = null;
 let signupPanel: HTMLElement | null = null;
 let loginTab: HTMLElement | null = null;
@@ -25,6 +29,8 @@ function SetupPopupRoot(): void {
 	authView = document.getElementById('authView');
 	resumeView = document.getElementById('resumeView');
 	mainView = document.getElementById('mainView');
+	generatingView = document.getElementById('generatingView');
+	resultsView = document.getElementById('resultsView');
 	loginPanel = document.getElementById('loginPanel');
 	signupPanel = document.getElementById('signupPanel');
 	loginTab = document.getElementById('loginTab');
@@ -49,7 +55,15 @@ function SetupPopupRoot(): void {
 		showMainView: ShowMainView,
 	});
 
-	SetupMainPopup(ShowAuthView, ShowResumeViewFromMain);
+	SetupMainPopup(ShowAuthView, ShowResumeViewFromMain, ShowGeneratingView);
+
+	SetupGeneratingView();
+
+	SetupResultsView({
+		showMainView: ShowMainView,
+	});
+
+	chrome.storage.local.remove(['resumeResults']);
 
 	chrome.storage.local.get(['authToken'], (result: StorageResult) => {
 		if (result.authToken) {
@@ -104,16 +118,19 @@ async function FetchAndStoreResumeJson(authToken: string, resumeUrl: string): Pr
 }
 
 export function SwitchView(view: PopupView): void {
-	if (!authView || !resumeView || !mainView) return;
+	const allViews: (HTMLElement | null)[] = [authView, resumeView, mainView, generatingView, resultsView];
 
-	authView.classList.toggle('active', view === 'auth');
-	authView.classList.toggle('hidden', view !== 'auth');
-
-	resumeView.classList.toggle('active', view === 'resume');
-	resumeView.classList.toggle('hidden', view !== 'resume');
-
-	mainView.classList.toggle('active', view === 'main');
-	mainView.classList.toggle('hidden', view !== 'main');
+	for (const v of allViews) {
+		if (!v) continue;
+		const isTarget =
+			   v === authView && view === 'auth'
+			|| v === resumeView && view === 'resume'
+			|| v === mainView && view === 'main'
+			|| v === generatingView && view === 'generating'
+			|| v === resultsView && view === 'results';
+		v.classList.toggle('active', isTarget);
+		v.classList.toggle('hidden', !isTarget);
+	}
 }
 
 function ShowAuthView(): void {
@@ -144,6 +161,16 @@ function ShowResumeViewFromAuth(): void {
 function ShowResumeViewFromMain(): void {
 	SwitchView('resume');
 	ResetResumeView(true);
+}
+
+function ShowGeneratingView(): void {
+	SwitchView('generating');
+	ResetGeneratingView();
+}
+
+export function ShowResultsView(): void {
+	SwitchView('results');
+	ResetResultsView();
 }
 
 function ShowMainView(): void {

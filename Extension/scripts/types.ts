@@ -24,12 +24,22 @@ export interface JobData {
 	[jobId: string]: JobRecord;
 }
 
+export interface ResumeResult {
+	jobId: string;
+	company: string;
+	title: string;
+	href?: string;
+	success: boolean;
+	pdfBase64?: string;
+}
+
 export interface StorageResult {
 	trackingEnabled?: boolean;
 	jobData?: JobData;
 	email?: string;
 	authToken?: string;
 	resumeJson?: Record<string, unknown>;
+	resumeResults?: ResumeResult[];
 }
 
 export interface StoreJobMessage {

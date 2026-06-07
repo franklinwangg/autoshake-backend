@@ -61,21 +61,6 @@ export async function Signup(email: string, password: string): Promise<AuthRespo
 	return response.json();
 }
 
-export async function Logout(authToken: string): Promise<void> {
-	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			"Authorization": `Bearer ${authToken}`,
-		},
-	});
-
-	if (!response.ok) {
-		const body = await response.text();
-		throw BuildApiError(response, body);
-	}
-}
-
 export async function GetResume(authToken: string): Promise<ResumeListResponse> {
 	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_RESUME}`, {
 		headers: { "Authorization": `Bearer ${authToken}` },
@@ -123,6 +108,24 @@ export async function ParseResume(authToken: string, text: string): Promise<Reco
 	}
 
 	return response.json();
+}
+
+export async function GenerateResume(authToken: string, resume: Record<string, unknown>, jobDescription: string): Promise<Blob> {
+	const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GENERATE_RESUME_PIPELINE}`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${authToken}`,
+		},
+		body: JSON.stringify({ job_description: jobDescription, resume }),
+	});
+
+	if (!response.ok) {
+		const body = await response.text();
+		throw BuildApiError(response, body);
+	}
+
+	return response.blob();
 }
 
 export async function UploadResume(authToken: string, file: File): Promise<UploadResumeResponse> {

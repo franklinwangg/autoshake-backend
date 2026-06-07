@@ -1,6 +1,8 @@
-import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData } from './types';
-import { GetRelativeTime, ExtractJobField, IsObject, GetAuthTokenFromStorage } from './popupUtils';
-import { Logout } from './api';
+import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData, ResumeResult } from './types';
+import { GetRelativeTime, ExtractJobField, IsObject } from './popupUtils';
+import { GenerateResume } from './api';
+import { ShowResultsView } from './popup';
+import { UpdateGeneratingProgress } from './popupGenerating';
 
 // Compile-time debug flag for GraphQL view
 declare const DEBUG_GRAPHQL_VIEW: boolean;
@@ -11,7 +13,7 @@ let jobList: HTMLElement | null = null;
 let graphqlToggleButton: HTMLElement | null = null;
 let submitButton: HTMLButtonElement | null = null;
 
-export function SetupMainPopup(showAuthView: () => void, showResumeView: () => void): void {
+export function SetupMainPopup(showAuthView: () => void, showResumeView: () => void, showGeneratingView: () => void): void {
 	toggle = document.getElementById("stateToggle") as HTMLInputElement | null;
 	stateText = document.getElementById("trackingLabel");
 	jobList = document.getElementById("jobList");
@@ -20,10 +22,10 @@ export function SetupMainPopup(showAuthView: () => void, showResumeView: () => v
 	}
 	submitButton = document.getElementById("submitButton") as HTMLButtonElement | null;
 
-	AttachMainPopupListeners(showAuthView, showResumeView);
+	AttachMainPopupListeners(showAuthView, showResumeView, showGeneratingView);
 }
 
-function AttachMainPopupListeners(showAuthView: () => void, showResumeView: () => void): void {
+function AttachMainPopupListeners(showAuthView: () => void, showResumeView: () => void, showGeneratingView: () => void): void {
 	if (toggle) {
 		toggle.addEventListener('change', () => {
 			const isOn: boolean = toggle!.checked;
@@ -44,7 +46,7 @@ function AttachMainPopupListeners(showAuthView: () => void, showResumeView: () =
 		});
 	}
 
-	submitButton?.addEventListener('click', SubmitJobList);
+	submitButton?.addEventListener('click', () => SubmitJobList(showGeneratingView));
 
 	const logoutButton = document.getElementById('logoutButton');
 	logoutButton?.addEventListener('click', () => HandleLogout(showAuthView));
@@ -68,14 +70,6 @@ function DisplayEmail(): void {
 }
 
 async function HandleLogout(showAuthView: () => void): Promise<void> {
-	const authToken = await GetAuthTokenFromStorage();
-
-	if (authToken) {
-		Logout(authToken).catch((error: unknown) => {
-			console.warn('Logout API call failed, clearing local session anyway:', error);
-		});
-	}
-
 	chrome.storage.local.remove(['authToken', 'email'], () => {
 		showAuthView();
 	});
@@ -252,8 +246,8 @@ function UpdateSubmitButtonState(): void {
 	});
 }
 
-function SubmitJobList(): void {
-	chrome.storage.local.get("jobData", (result: StorageResult) => {
+function SubmitJobList(showGeneratingView: () => void): void {
+	chrome.storage.local.get(["jobData", "authToken", "resumeJson"], (result: StorageResult) => {
 		const jobData: JobData = result.jobData || {};
 		const jobs: JobRecord[] = Object.values(jobData).filter((job: JobRecord) => job.clicked);
 
@@ -262,33 +256,81 @@ function SubmitJobList(): void {
 			return;
 		}
 
-		// Prepare the payload with all job data and their GraphQL responses
-		const payload = {
-			jobs: jobs,
-			submittedAt: new Date().toISOString(),
-		};
+		ClearClickedJobs(jobData, jobs);
+		showGeneratingView();
 
-		console.log("Submitting job list:", payload);
+		const authToken = result.authToken;
+		const resumeJson = result.resumeJson ?? {};
 
-		// BACKEND TODO: Send the job list submission to the backend server
-		// This is where the job list will be submitted to the FastAPI backend server.
-		// The implementation will involve:
-		// 1. Making a POST request to the FastAPI server endpoint (e.g., http://localhost:8000/submit-jobs)
-		// 2. Sending the payload as JSON
-		// 3. Handling the response and any errors
-		// 4. Only clearing the clicked field on successful submission
+		if (!authToken) {
+			alert("Not authenticated. Please log in again.");
+			return;
+		}
 
-		// Clear the clicked field for all submitted jobs to preserve GraphQL data
-		jobs.forEach((job: JobRecord) => {
-			if (jobData[job.jobId]) {
-				jobData[job.jobId].clicked = false;
-			}
-		});
+		GenerateResumesForJobs(jobs, authToken, resumeJson);
+	});
+}
 
-		chrome.storage.local.set({ jobData }, () => {
-			DisplayJobs();
-			alert("Job list submitted!");
-		});
+function ClearClickedJobs(jobData: JobData, jobs: JobRecord[]): void {
+	jobs.forEach((job: JobRecord) => {
+		if (jobData[job.jobId]) {
+			jobData[job.jobId].clicked = false;
+		}
+	});
+	chrome.storage.local.set({ jobData });
+}
+
+async function GenerateResumesForJobs(jobs: JobRecord[], authToken: string, resumeJson: Record<string, unknown>): Promise<void> {
+	const totalJobs = jobs.length;
+	let completedCount = 0;
+	const resumeResults: ResumeResult[] = [];
+
+	UpdateGeneratingProgress(0, totalJobs);
+
+	const promises: Promise<ResumeResult>[] = [];
+
+	for (const job of jobs) {
+		const company = ExtractJobField(job.graphqlResponses || [], ["job", "employer", "name"]) || "Unknown Company";
+		const title = ExtractJobField(job.graphqlResponses || [], ["job", "title"]) || "Unknown Role";
+		const jobDescription = ExtractJobField(job.graphqlResponses || [], ["job", "description"]) || title;
+
+		//console.log(`GenerateResume for "${title}" at "${company}":`, { jobDescription, resumeJson });
+
+		promises.push(
+			GenerateResume(authToken, resumeJson, jobDescription)
+				.then(async (blob: Blob) => {
+					const buffer = await blob.arrayBuffer();
+					const bytes = new Uint8Array(buffer);
+					// Convert PDF binary to base64: each byte becomes a char, then btoa encodes
+					let binary = '';
+					for (let i = 0; i < bytes.byteLength; i++) {
+						binary += String.fromCharCode(bytes[i]);
+					}
+					const pdfBase64 = btoa(binary);
+
+					completedCount++;
+					UpdateGeneratingProgress(completedCount, totalJobs);
+
+					return { jobId: job.jobId, company, title, href: job.href, success: true, pdfBase64 } as ResumeResult;
+				})
+				.catch(() => {
+					completedCount++;
+					UpdateGeneratingProgress(completedCount, totalJobs);
+
+					return { jobId: job.jobId, company, title, href: job.href, success: false } as ResumeResult;
+				})
+		);
+	}
+
+	const outcomes = await Promise.allSettled(promises);
+
+	for (const outcome of outcomes) {
+		const fulfilled = outcome as PromiseFulfilledResult<ResumeResult>;
+		resumeResults.push(fulfilled.value);
+	}
+
+	chrome.storage.local.set({ resumeResults }, () => {
+		ShowResultsView();
 	});
 }
 

@@ -40,6 +40,21 @@
       <div id="resumeUploadError" class="login-error"></div>
       <div id="resumeUploadStatus" class="resume-upload-status"></div>
     </div>
+    <div id="generatingView" class="hidden">
+      <h1 class="generating-title">Generating Resumes</h1>
+      <div class="generating-spinner"></div>
+      <div id="generatingProgress" class="generating-progress">Preparing...</div>
+    </div>
+    <div id="resultsView" class="hidden">
+      <div id="resumeCard" class="resume-card"></div>
+      <div class="results-nav">
+        <button id="carouselPrev" class="carousel-button" disabled>&#8592; Prev</button>
+        <span id="carouselCounter" class="carousel-counter"></span>
+        <button id="carouselNext" class="carousel-button" disabled>Next &#8594;</button>
+      </div>
+      <div id="carouselDots" class="carousel-dots"></div>
+      <button id="resultsBackButton" class="results-back-button">Back to Main</button>
+    </div>
     <div id="mainView">
       <div class="main-header">
         <h1>Auto<span class="accent">Shake</span></h1>

@@ -51,19 +51,6 @@
     }
     return response.json();
   }
-  async function Logout(authToken) {
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.LOGOUT}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`
-      }
-    });
-    if (!response.ok) {
-      const body = await response.text();
-      throw BuildApiError(response, body);
-    }
-  }
   async function GetResume(authToken) {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_RESUME}`, {
       headers: { "Authorization": `Bearer ${authToken}` }
@@ -103,6 +90,21 @@
       throw BuildApiError(response, body);
     }
     return response.json();
+  }
+  async function GenerateResume(authToken, resume, jobDescription) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GENERATE_RESUME_PIPELINE}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ job_description: jobDescription, resume })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw BuildApiError(response, body);
+    }
+    return response.blob();
   }
   async function UploadResume(authToken, file) {
     const formData = new FormData();
@@ -146,8 +148,8 @@
   }
 
   // scripts/popupAuth.ts
-  function SetupAuth(callbacks2) {
-    const { routeAfterLogin, showLoginView } = callbacks2;
+  function SetupAuth(callbacks3) {
+    const { routeAfterLogin, showLoginView } = callbacks3;
     const loginButton = document.getElementById("loginButton");
     loginButton?.addEventListener("click", () => HandleLogin(routeAfterLogin));
     const createAccountButton = document.getElementById("createAccountButton");
@@ -292,12 +294,29 @@
     return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
 
+  // scripts/popupGenerating.ts
+  var progressText = null;
+  function SetupGeneratingView() {
+    progressText = document.getElementById("generatingProgress");
+  }
+  function ResetGeneratingView() {
+    UpdateGeneratingProgress(0, 0);
+  }
+  function UpdateGeneratingProgress(completed, total) {
+    if (!progressText) return;
+    if (total === 0) {
+      progressText.textContent = "Preparing...";
+      return;
+    }
+    progressText.textContent = `Generating ${completed} of ${total} resumes...`;
+  }
+
   // scripts/popupMain.ts
   var toggle = null;
   var stateText = null;
   var jobList = null;
   var submitButton = null;
-  function SetupMainPopup(showAuthView, showResumeView) {
+  function SetupMainPopup(showAuthView, showResumeView, showGeneratingView) {
     toggle = document.getElementById("stateToggle");
     stateText = document.getElementById("trackingLabel");
     jobList = document.getElementById("jobList");
@@ -305,9 +324,9 @@
       graphqlToggleButton = document.getElementById("toggleGraphql");
     }
     submitButton = document.getElementById("submitButton");
-    AttachMainPopupListeners(showAuthView, showResumeView);
+    AttachMainPopupListeners(showAuthView, showResumeView, showGeneratingView);
   }
-  function AttachMainPopupListeners(showAuthView, showResumeView) {
+  function AttachMainPopupListeners(showAuthView, showResumeView, showGeneratingView) {
     if (toggle) {
       toggle.addEventListener("change", () => {
         const isOn = toggle.checked;
@@ -325,7 +344,7 @@
         graphqlToggleButton.textContent = isHidden ? "Hide" : "Show";
       });
     }
-    submitButton?.addEventListener("click", SubmitJobList);
+    submitButton?.addEventListener("click", () => SubmitJobList(showGeneratingView));
     const logoutButton = document.getElementById("logoutButton");
     logoutButton?.addEventListener("click", () => HandleLogout(showAuthView));
     const updateResumeButton = document.getElementById("updateResumeButton");
@@ -344,12 +363,6 @@
     });
   }
   async function HandleLogout(showAuthView) {
-    const authToken = await GetAuthTokenFromStorage();
-    if (authToken) {
-      Logout(authToken).catch((error) => {
-        console.warn("Logout API call failed, clearing local session anyway:", error);
-      });
-    }
     chrome.storage.local.remove(["authToken", "email"], () => {
       showAuthView();
     });
@@ -454,28 +467,70 @@
       }
     });
   }
-  function SubmitJobList() {
-    chrome.storage.local.get("jobData", (result) => {
+  function SubmitJobList(showGeneratingView) {
+    chrome.storage.local.get(["jobData", "authToken", "resumeJson"], (result) => {
       const jobData = result.jobData || {};
       const jobs = Object.values(jobData).filter((job) => job.clicked);
       if (jobs.length === 0) {
         alert("No jobs to submit!");
         return;
       }
-      const payload = {
-        jobs,
-        submittedAt: (/* @__PURE__ */ new Date()).toISOString()
-      };
-      console.log("Submitting job list:", payload);
-      jobs.forEach((job) => {
-        if (jobData[job.jobId]) {
-          jobData[job.jobId].clicked = false;
-        }
-      });
-      chrome.storage.local.set({ jobData }, () => {
-        DisplayJobs();
-        alert("Job list submitted!");
-      });
+      ClearClickedJobs(jobData, jobs);
+      showGeneratingView();
+      const authToken = result.authToken;
+      const resumeJson = result.resumeJson ?? {};
+      if (!authToken) {
+        alert("Not authenticated. Please log in again.");
+        return;
+      }
+      GenerateResumesForJobs(jobs, authToken, resumeJson);
+    });
+  }
+  function ClearClickedJobs(jobData, jobs) {
+    jobs.forEach((job) => {
+      if (jobData[job.jobId]) {
+        jobData[job.jobId].clicked = false;
+      }
+    });
+    chrome.storage.local.set({ jobData });
+  }
+  async function GenerateResumesForJobs(jobs, authToken, resumeJson) {
+    const totalJobs = jobs.length;
+    let completedCount = 0;
+    const resumeResults = [];
+    UpdateGeneratingProgress(0, totalJobs);
+    const promises = [];
+    for (const job of jobs) {
+      const company = ExtractJobField(job.graphqlResponses || [], ["job", "employer", "name"]) || "Unknown Company";
+      const title = ExtractJobField(job.graphqlResponses || [], ["job", "title"]) || "Unknown Role";
+      const jobDescription = ExtractJobField(job.graphqlResponses || [], ["job", "description"]) || title;
+      console.log(`GenerateResume for "${title}" at "${company}":`, { jobDescription, resumeJson });
+      promises.push(
+        GenerateResume(authToken, resumeJson, jobDescription).then(async (blob) => {
+          const buffer = await blob.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          let binary = "";
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const pdfBase64 = btoa(binary);
+          completedCount++;
+          UpdateGeneratingProgress(completedCount, totalJobs);
+          return { jobId: job.jobId, company, title, href: job.href, success: true, pdfBase64 };
+        }).catch(() => {
+          completedCount++;
+          UpdateGeneratingProgress(completedCount, totalJobs);
+          return { jobId: job.jobId, company, title, href: job.href, success: false };
+        })
+      );
+    }
+    const outcomes = await Promise.allSettled(promises);
+    for (const outcome of outcomes) {
+      const fulfilled = outcome;
+      resumeResults.push(fulfilled.value);
+    }
+    chrome.storage.local.set({ resumeResults }, () => {
+      ShowResultsView();
     });
   }
 
@@ -591,10 +646,95 @@
     if (uploadStatus) uploadStatus.textContent = message;
   }
 
+  // scripts/popupResults.ts
+  var currentCardIndex = 0;
+  var callbacks2 = null;
+  function SetupResultsView(resultsCallbacks) {
+    callbacks2 = resultsCallbacks;
+    const prevBtn = document.getElementById("carouselPrev");
+    const nextBtn = document.getElementById("carouselNext");
+    const backButton2 = document.getElementById("resultsBackButton");
+    prevBtn?.addEventListener("click", () => NavigateCard(-1));
+    nextBtn?.addEventListener("click", () => NavigateCard(1));
+    backButton2?.addEventListener("click", HandleBackToMain);
+  }
+  function ResetResultsView() {
+    currentCardIndex = 0;
+    chrome.storage.local.get(["resumeResults"], (result) => {
+      RenderCard(result.resumeResults || []);
+    });
+  }
+  function NavigateCard(direction) {
+    chrome.storage.local.get(["resumeResults"], (result) => {
+      const results = result.resumeResults || [];
+      if (results.length === 0) return;
+      currentCardIndex = Math.max(0, Math.min(results.length - 1, currentCardIndex + direction));
+      RenderCard(results);
+    });
+  }
+  function RenderCard(results) {
+    const cardEl = document.getElementById("resumeCard");
+    const dotsEl = document.getElementById("carouselDots");
+    const counterEl = document.getElementById("carouselCounter");
+    const prevBtn = document.getElementById("carouselPrev");
+    const nextBtn = document.getElementById("carouselNext");
+    if (!cardEl) return;
+    if (results.length === 0) {
+      cardEl.innerHTML = '<p class="no-data-text">No results to display.</p>';
+      if (counterEl) counterEl.textContent = "";
+      if (dotsEl) dotsEl.innerHTML = "";
+      return;
+    }
+    const currentResult = results[currentCardIndex];
+    if (!currentResult) return;
+    if (counterEl) counterEl.textContent = `${currentCardIndex + 1} of ${results.length}`;
+    cardEl.innerHTML = `
+		<div class="card-company">${currentResult.company}</div>
+		<div class="card-title">${currentResult.title}</div>
+		${currentResult.success ? '<span class="card-badge badge-success">Tailored Successfully</span>' : '<span class="card-badge badge-error">Could not tailor resume</span>'}
+		${currentResult.href ? `<a class="card-job-link" href="${currentResult.href}" target="_blank">View Job Posting &rarr;</a>` : ""}
+		${currentResult.success && currentResult.pdfBase64 ? '<button class="download-button" id="downloadBtn">Download PDF</button>' : ""}
+	`;
+    if (currentResult.success && currentResult.pdfBase64) {
+      document.getElementById("downloadBtn")?.addEventListener("click", () => {
+        DownloadPdf(currentResult);
+      });
+    }
+    if (dotsEl) {
+      dotsEl.innerHTML = results.map(
+        (_result, index) => `<span class="dot ${index === currentCardIndex ? "dot-active" : ""}"></span>`
+      ).join("");
+    }
+    if (prevBtn) prevBtn.disabled = currentCardIndex === 0;
+    if (nextBtn) nextBtn.disabled = currentCardIndex === results.length - 1;
+  }
+  function DownloadPdf(result) {
+    if (!result.pdfBase64) return;
+    const binary = atob(result.pdfBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let byteIndex = 0; byteIndex < binary.length; byteIndex++) {
+      bytes[byteIndex] = binary.charCodeAt(byteIndex);
+    }
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.href = url;
+    downloadAnchor.download = `${result.company}_${result.title}_resume.pdf`.replace(/[^a-z0-9_\-]/gi, "_");
+    downloadAnchor.click();
+    URL.revokeObjectURL(url);
+  }
+  function HandleBackToMain() {
+    chrome.storage.local.remove(["resumeResults"], () => {
+      if (callbacks2) callbacks2.showMainView();
+    });
+  }
+
   // scripts/popup.ts
   var authView = null;
   var resumeView = null;
   var mainView = null;
+  var generatingView = null;
+  var resultsView = null;
   var loginPanel = null;
   var signupPanel = null;
   var loginTab = null;
@@ -606,6 +746,8 @@
     authView = document.getElementById("authView");
     resumeView = document.getElementById("resumeView");
     mainView = document.getElementById("mainView");
+    generatingView = document.getElementById("generatingView");
+    resultsView = document.getElementById("resultsView");
     loginPanel = document.getElementById("loginPanel");
     signupPanel = document.getElementById("signupPanel");
     loginTab = document.getElementById("loginTab");
@@ -625,7 +767,12 @@
     SetupResumeView({
       showMainView: ShowMainView
     });
-    SetupMainPopup(ShowAuthView, ShowResumeViewFromMain);
+    SetupMainPopup(ShowAuthView, ShowResumeViewFromMain, ShowGeneratingView);
+    SetupGeneratingView();
+    SetupResultsView({
+      showMainView: ShowMainView
+    });
+    chrome.storage.local.remove(["resumeResults"]);
     chrome.storage.local.get(["authToken"], (result) => {
       if (result.authToken) {
         RouteAfterLogin();
@@ -673,13 +820,13 @@
     });
   }
   function SwitchView(view) {
-    if (!authView || !resumeView || !mainView) return;
-    authView.classList.toggle("active", view === "auth");
-    authView.classList.toggle("hidden", view !== "auth");
-    resumeView.classList.toggle("active", view === "resume");
-    resumeView.classList.toggle("hidden", view !== "resume");
-    mainView.classList.toggle("active", view === "main");
-    mainView.classList.toggle("hidden", view !== "main");
+    const allViews = [authView, resumeView, mainView, generatingView, resultsView];
+    for (const v of allViews) {
+      if (!v) continue;
+      const isTarget = v === authView && view === "auth" || v === resumeView && view === "resume" || v === mainView && view === "main" || v === generatingView && view === "generating" || v === resultsView && view === "results";
+      v.classList.toggle("active", isTarget);
+      v.classList.toggle("hidden", !isTarget);
+    }
   }
   function ShowAuthView() {
     SwitchView("auth");
@@ -705,6 +852,14 @@
   function ShowResumeViewFromMain() {
     SwitchView("resume");
     ResetResumeView(true);
+  }
+  function ShowGeneratingView() {
+    SwitchView("generating");
+    ResetGeneratingView();
+  }
+  function ShowResultsView() {
+    SwitchView("results");
+    ResetResultsView();
   }
   function ShowMainView() {
     SwitchView("main");
