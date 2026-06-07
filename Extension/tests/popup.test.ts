@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ExtractJobField, GetFieldFromObject, FindJobIdInObject, NormalizeId, IsObject } from '../scripts/popupUtils';
+import { ExtractJobField, GetFieldFromObject, FindJobIdInObject, NormalizeId, IsObject } from '../scripts/popup/popupUtils';
 import type { GraphqlResponse } from '../scripts/types';
 
 // ============ GetFieldFromObject Tests ============

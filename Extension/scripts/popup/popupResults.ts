@@ -1,4 +1,4 @@
-import type { ResumeResult, StorageResult } from './types';
+import type { ResumeResult, StorageResult } from '../types';
 
 interface ResultsCallbacks {
 	showMainView: () => void;

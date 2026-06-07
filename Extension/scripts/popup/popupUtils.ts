@@ -1,4 +1,4 @@
-import type { GraphqlResponse, StorageResult } from './types';
+import type { GraphqlResponse, StorageResult } from '../types';
 
 type UnknownRecord = Record<string, unknown>;
 

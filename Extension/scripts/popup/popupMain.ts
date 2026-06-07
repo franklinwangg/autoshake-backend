@@ -1,6 +1,6 @@
-import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData, ResumeResult } from './types';
+import type { JobRecord, JobData, StorageResult, GraphqlResponse, ParsedGraphqlData, ResumeResult } from '../types';
 import { GetRelativeTime, ExtractJobField, IsObject } from './popupUtils';
-import { GenerateResume } from './api';
+import { GenerateResume } from '../api';
 import { ShowResultsView } from './popup';
 import { UpdateGeneratingProgress } from './popupGenerating';
 

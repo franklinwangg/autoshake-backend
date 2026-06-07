@@ -3,9 +3,9 @@ import { SetupMainPopup, ResetMainPopup } from './popupMain';
 import { SetupResumeView, ResetResumeView } from './popupResume';
 import { SetupGeneratingView, ResetGeneratingView } from './popupGenerating';
 import { SetupResultsView, ResetResultsView } from './popupResults';
-import { GetResume, ExtractResumeText, ParseResume } from './api';
+import { GetResume, ExtractResumeText, ParseResume } from '../api';
 import { GetAuthTokenFromStorage } from './popupUtils';
-import type { StorageResult } from './types';
+import type { StorageResult } from '../types';
 
 declare const DEBUG_GRAPHQL_VIEW: boolean;
 

@@ -1,6 +1,6 @@
-import { UploadResume, GetResume, ExtractResumeText, ParseResume } from './api';
+import { UploadResume, GetResume, ExtractResumeText, ParseResume } from '../api';
 import { GetAuthTokenFromStorage } from './popupUtils';
-import type { StorageResult } from './types';
+import type { StorageResult } from '../types';
 
 interface ResumeCallbacks {
 	showMainView: () => void;

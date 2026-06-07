@@ -1,4 +1,4 @@
-import { Login, Signup } from './api';
+import { Login, Signup } from '../api';
 
 interface AuthCallbacks {
 	routeAfterLogin: () => void;

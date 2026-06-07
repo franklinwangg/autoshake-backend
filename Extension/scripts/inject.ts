@@ -1,5 +1,5 @@
 import type { GraphqlResponse } from './types';
-import { FindJobIdInObject, IsObject } from './popupUtils';
+import { FindJobIdInObject, IsObject } from './popup/popupUtils';
 
 const GRAPHQL_RESPONSE_MESSAGE = 'AUTOSHAKE_GRAPHQL_RESPONSE';
 

@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  // scripts/popupUtils.ts
+  // scripts/popup/popupUtils.ts
   var IsObject = (value) => value !== null && typeof value === "object";
   var NormalizeId = (value) => {
     if (typeof value === "string" && /^\d+$/.test(value)) return value;
