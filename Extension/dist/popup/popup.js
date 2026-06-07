@@ -771,10 +771,13 @@
     SetupResultsView({
       showMainView: ShowMainView
     });
-    chrome.storage.local.remove(["resumeResults"]);
-    chrome.storage.local.get(["authToken"], (result) => {
+    chrome.storage.local.get(["authToken", "resumeResults"], (result) => {
       if (result.authToken) {
-        RouteAfterLogin();
+        if (result.resumeResults && result.resumeResults.length > 0) {
+          ShowResultsView();
+        } else {
+          RouteAfterLogin();
+        }
       } else {
         ShowAuthView();
       }

@@ -63,11 +63,13 @@ function SetupPopupRoot(): void {
 		showMainView: ShowMainView,
 	});
 
-	chrome.storage.local.remove(['resumeResults']);
-
-	chrome.storage.local.get(['authToken'], (result: StorageResult) => {
+	chrome.storage.local.get(['authToken', 'resumeResults'], (result: StorageResult) => {
 		if (result.authToken) {
-			RouteAfterLogin();
+			if (result.resumeResults && result.resumeResults.length > 0) {
+				ShowResultsView();
+			} else {
+				RouteAfterLogin();
+			}
 		} else {
 			ShowAuthView();
 		}
