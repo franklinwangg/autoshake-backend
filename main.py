@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +8,11 @@ from fastapi.responses import JSONResponse
 from controllers.auth_controller import router as auth_router
 from controllers.resume_controller import router as resume_router
 from controllers.tailored_resume_controller import router as tailored_resume_router
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 app = FastAPI(title="AutoShake API", version="1.0.0")
 
