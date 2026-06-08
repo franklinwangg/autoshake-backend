@@ -64,12 +64,19 @@ function RenderCard(results: ResumeResult[]): void {
 			? '<span class="card-badge badge-success">Tailored Successfully</span>'
 			: '<span class="card-badge badge-error">Could not tailor resume</span>'
 		}
-		${currentResult.href ? `<a class="card-job-link" href="${currentResult.href}" target="_blank">View Job Posting &rarr;</a>` : ''}
+		${currentResult.href ? '<button class="card-job-link" id="viewJobPostingBtn" type="button">View Job Posting →</button>' : ''}
 		${currentResult.success && currentResult.pdfBase64
 			? '<button class="download-button" id="downloadBtn">Download PDF</button>'
 			: ''
 		}
 	`;
+
+	if (currentResult.href) {
+		document.getElementById('viewJobPostingBtn')?.addEventListener('click', () => {
+			const jobUrl = NormalizeHandshakeUrl(currentResult.href);
+			chrome.tabs.create({ url: jobUrl });
+		});
+	}
 
 	if (currentResult.success && currentResult.pdfBase64) {
 		document.getElementById('downloadBtn')?.addEventListener('click', () => {
@@ -85,6 +92,11 @@ function RenderCard(results: ResumeResult[]): void {
 
 	if (prevBtn) prevBtn.disabled = currentCardIndex === 0;
 	if (nextBtn) nextBtn.disabled = currentCardIndex === results.length - 1;
+}
+
+function NormalizeHandshakeUrl(href: string): string {
+	if (href.startsWith('http')) return href;
+	return 'https://app.joinhandshake.com' + (href.startsWith('/') ? '' : '/') + href;
 }
 
 function DownloadPdf(result: ResumeResult): void {
